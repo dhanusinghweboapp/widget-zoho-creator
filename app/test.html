@@ -1,130 +1,195 @@
-<div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-    <h3 style="color: #2b3d63; margin-bottom: 15px;">Dependents</h3>
+<!-- STEP  7 -->
+ <div class="form-step">
+    <input type="text" id="Clients" placeholder="Client">
+    <input type="text" id="Case" placeholder="Case">
+    <input type="text" id="A_Master" placeholder="A_Master">
     
-    <table id="customSubformTable" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
-        <thead>
-            <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
-                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Dependent Name</th>
-                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Relationship to you</th>
-                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Date of Birth</th>
-                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">SSN</th>
-                <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 120px;">Full-time Student?</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
-                <td style="padding: 8px 0; text-align: center;">
-                    <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-                </td>
-                <td style="padding: 8px 0;">
-                    <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                </td>
-                <td style="padding: 8px 0;">
-                    <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                        <option value="" disabled selected>-Select-</option>
-                        <option value="Spouse">Son</option>
-                        <option value="Child">Daughter</option>
-                        <option value="Parent">Step Child</option>
-                        <option value="Other">Eligible Foster Child</option>
-                        <option value="Spouse">Brother</option>
-                        <option value="Child">Sister</option>
-                        <option value="Parent">Half Brother</option>
-                        <option value="Other">Half Sister</option>
-                        <option value="Spouse">Step Brother</option>
-                        <option value="Child">Step Sister</option>
-                        <option value="Parent">Adopted Child</option>
-                        <option value="Other">Mother</option>
-                        <option value="Spouse">Father</option>
-                        <option value="Child">Grand Parent</option>
-                        <option value="Parent">Step Mother</option>
-                        <option value="Other">Step Father</option>
-                        <option value="Spouse">In-law</option>
-                        
-                    </select>
-                </td>
-                <td style="padding: 8px 0;">
-                    <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
-                </td>
-                <td style="padding: 8px 0;">
-                    <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                </td>
-                <td style="padding: 8px 0; text-align: center;">
-                    <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <label for="Do_you_own_a_vehicle">Do you own a vehicle?</label>
+    <select name="Do_you_own_a_vehicle" id="Do_you_own_a_vehicle">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
 
-    <button type="button" onclick="addRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
-    
-    <input type="hidden" id="serializedSubformData" name="serializedSubformData">
+    <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+        <h3 style="color: #2b3d63; margin-bottom: 15px;">Vehicle details</h3>
+
+        <table id="customSubformTablevehicle" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+            <thead>
+                <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
+                    <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
+                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Make</th>
+                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Model</th>
+                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
+                    <td style="padding: 8px 0; text-align: center;">
+                        <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+                    </td>
+                    <td style="padding: 8px 0;">
+                        <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+                    </td>
+                    <td style="padding: 8px 0;">
+                        <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+                    </td>
+                    <td style="padding: 8px 0; text-align: center;">
+                        <div>
+                            <input type="number" id="Value" class="vehicle-value" name="Value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button type="button" onclick="addRowVehicle()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+
+        <input type="hidden" id="serializedVehicleSubformData" name="serializedVehicleSubformData">
+    </div>
+   
+    <div class="btn-group">
+        <button onclick="prevStep(1)">Back</button>
+        <button id="basicBtn" onclick="saveVehicleDetails()">Save & Next</button>
+    </div>
 </div>
 
-<script>
-    // Appends a new dependent data row dynamically with matching structure
-    function addRow() {
-        const tbody = document.querySelector("#customSubformTable tbody");
+ <script>
+    // ==========================================
+    // 1. BANK ACCOUNT SUBFORM LOGIC (STEP 6)
+    // ==========================================
+    
+    function addRowBank() {
+        const tbody = document.querySelector("#customSubformTableBANK tbody");
         const newRow = document.createElement("tr");
         newRow.className = "subform-row";
         newRow.style.borderBottom = "1px solid #edf2f7";
         newRow.innerHTML = `
             <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+                <button type="button" onclick="removeRowBank(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
             </td>
             <td style="padding: 8px 0;">
-                <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+                <input type="text" class="bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
             </td>
             <td style="padding: 8px 0;">
-                <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
+                <select class="bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
                     <option value="" disabled selected>-Select-</option>
-                    <option value="Spouse">Spouse</option>
-                    <option value="Child">Child</option>
-                    <option value="Parent">Parent</option>
-                    <option value="Other">Other</option>
+                    <option value="Saving">Saving</option>
+                    <option value="Current">Current</option>
+                    <option value="Joint Account">Joint Account</option>
                 </select>
             </td>
-            <td style="padding: 8px 0;">
-                <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
             <td style="padding: 8px 0; text-align: center;">
-                <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
+                <div>
+                    <input type="number" class="bank-balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
+                </div>
             </td>
         `;
         tbody.appendChild(newRow);
     }
 
-    // Drops selected row matrix
-    function removeRow(button) {
-        const rows = document.querySelectorAll(".subform-row");
-        if(rows.length > 1) {
+    function removeRowBank(button) {
+        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
+        if (rows.length > 1) {
             button.closest("tr").remove();
         }
     }
 
-    // Encodes row matrix fields into a clean delimited text string right before workflow processing
-    function serializeSubform() {
-        const rows = document.querySelectorAll(".subform-row");
+    function serializeBankSubform() {
+        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
         let dataArray = [];
-        
-        rows.forEach(row => {
-            const name = row.querySelector(".dep-name").value.trim();
-            const relationship = row.querySelector(".dep-relationship").value;
-            const dob = row.querySelector(".dep-dob").value;
-            const ssn = row.querySelector(".dep-ssn").value.trim();
-            const isStudent = row.querySelector(".dep-student").checked ? "true" : "false";
-            
-            // Check to ensure name is populated to prevent saving empty database rows
-            if(name) {
-                // Generates format: Name,Relationship,DOB,SSN,isStudent
-                dataArray.push(name + "," + relationship + "," + dob + "," + ssn + "," + isStudent);
+
+        rows.forEach((row, index) => {
+            const bankNameEl = row.querySelector(".bank-name");
+            const bankTypeEl = row.querySelector(".bank-type");
+            const balanceEl = row.querySelector(".bank-balance");
+
+            const bankName = bankNameEl ? bankNameEl.value.trim() : "";
+            const bankType = bankTypeEl ? bankTypeEl.value : "";
+            const balance = balanceEl ? balanceEl.value.trim() : "";
+
+            if (bankName) {
+                dataArray.push({
+                    "Bank_Name": bankName,
+                    "Bank_Type": bankType,
+                    "Balance": balance,
+                    "record::status": "added",
+                    "row::key": `t::row_${index + 1}`
+                });
             }
         });
-        
-        // Combines entire array separated by string pipes (|)
-        document.getElementById("serializedSubformData").value = dataArray.join("|");
+
+        document.getElementById("serializedBankSubformData").value = JSON.stringify(dataArray);
+    }
+
+    function saveBankDetails() {
+        serializeBankSubform();
+        // If you have navigation step code, add it here (e.g., nextStep(1);)
+    }
+
+    // ==========================================
+    // 2. VEHICLE SUBFORM LOGIC (STEP 7)
+    // ==========================================
+    
+    function addRowVehicle() {
+        const tbody = document.querySelector("#customSubformTablevehicle tbody");
+        const newRow = document.createElement("tr");
+        newRow.className = "subform-row";
+        newRow.style.borderBottom = "1px solid #edf2f7";
+        newRow.innerHTML = `
+            <td style="padding: 8px 0; text-align: center;">
+                <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+            </td>
+            <td style="padding: 8px 0;">
+                <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+            </td>
+            <td style="padding: 8px 0;">
+                <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+            </td>
+            <td style="padding: 8px 0; text-align: center;">
+                <div>
+                    <input type="number" class="vehicle-value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
+                </div>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    function removeRowVehicle(button) {
+        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
+        if (rows.length > 1) {
+            button.closest("tr").remove();
+        }
+    }
+
+    function serializeVehicleSubform() {
+        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
+        let dataArray = [];
+
+        rows.forEach((row, index) => {
+            const makeEl = row.querySelector(".vehicle-make");
+            const modelEl = row.querySelector(".vehicle-model");
+            const valueEl = row.querySelector(".vehicle-value");
+
+            const make = makeEl ? makeEl.value.trim() : "";
+            const model = modelEl ? modelEl.value.trim() : "";
+            const value = valueEl ? valueEl.value.trim() : "";
+
+            if (make) {
+                dataArray.push({
+                    "Vehicle_Make": make,
+                    "Vehicle_Model": model,
+                    "Vehicle_Value": value,
+                    "record::status": "added",
+                    "row::key": `t::row_${index + 1}`
+                });
+            }
+        });
+
+        document.getElementById("serializedVehicleSubformData").value = JSON.stringify(dataArray);
+    }
+
+    function saveVehicleDetails() {
+        serializeVehicleSubform();
+        // If you have final submission or step navigation code, add it here
     }
 </script>
