@@ -32,6 +32,42 @@
                 <span>2</span>
                 <p>Household</p>
             </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(3)">
+                <span>3</span>
+                <p>Employment</p>
+            </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(4)">
+                <span>4</span>
+                <p>Income</p>
+            </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(5)">
+                <span>5</span>
+                <p>Expenses</p>
+            </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(6)">
+                <span>6</span>
+                <p>Bank</p>
+            </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(7)">
+                <span>7</span>
+                <p>Assets</p>
+            </div>
+            <div class="line"></div>
+
+            <div class="step" onclick="goToStep(8)">
+                <span>8</span>
+                <p>Documents</p>
+            </div>
 
         </div>
 
@@ -288,27 +324,110 @@
 
     // Encodes row matrix fields into a clean delimited text string right before workflow processing
     function serializeSubform() {
-        const rows = document.querySelectorAll(".subform-row");
-        let dataArray = [];
+    const rows = document.querySelectorAll(".subform-row");
+    let dataArray = [];
+    
+    rows.forEach((row, index) => {
+        const fullName = row.querySelector(".dep-name").value.trim();
+        const relationship = row.querySelector(".dep-relationship").value;
+        const dob = row.querySelector(".dep-dob").value;
+        const ssn = row.querySelector(".dep-ssn").value.trim();
+        const isStudentChecked = row.querySelector(".dep-student").checked;
         
-        rows.forEach(row => {
-            const name = row.querySelector(".dep-name").value.trim();
-            const relationship = row.querySelector(".dep-relationship").value;
-            const dob = row.querySelector(".dep-dob").value;
-            const ssn = row.querySelector(".dep-ssn").value.trim();
-            const isStudent = row.querySelector(".dep-student").checked ? "true" : "false";
+        if (fullName) {
+            // Split full name into first and last name safely for the subform structure
+            const nameParts = fullName.split(" ");
+            const firstName = nameParts[0] || "";
+            const lastName = nameParts.slice(1).join(" ") || ""; // Combines middle/last names if any
+
+            // 1. Match your expected subform format exactly
+            const dependentNameObj = {
+                first_name: firstName,
+                last_name: lastName,
+                status: "edit"
+            };
+
+            const rowObject = {
+                "Dependent_Name": JSON.stringify(dependentNameObj),
+                "Dependent_Relationship_to_you": relationship,
+                "Date_of_Birth": dob,
+                "SSN": ssn,
+                "Is_dependent_full_time_Student": isStudentChecked ? "zc_checked" : "zc_unchecked",
+                "record::status": "added",
+                "row::key": `t::row_${index + 1}`
+            };
             
-            // Check to ensure name is populated to prevent saving empty database rows
-            if(name) {
-                // Generates format: Name,Relationship,DOB,SSN,isStudent
-                dataArray.push(name + "," + relationship + "," + dob + "," + ssn + "," + isStudent);
-            }
-        });
-        
-        // Combines entire array separated by string pipes (|)
-        document.getElementById("serializedSubformData").value = dataArray.join("|");
-    }
+            dataArray.push(rowObject);
+        }
+    });
+    
+    // 2. Set the value as a clean JSON string
+    document.getElementById("serializedSubformData").value = JSON.stringify(dataArray);
+}
 </script>
+<div class="form-step active">
+
+            <!-- <h2>Basic Details</h2> -->
+
+            <input type="text" id="Clients" placeholder="Client">
+
+            <input type="text" id="Case" placeholder="Case">
+
+            <input type="text" id="A_Master" placeholder="A_Master">
+            <input type="text" id="Full_legal_name" placeholder="Full Legal Name">
+
+            <input type="number" id="Social_Security_Number_SSN" placeholder="Social Security Number (SSN)">
+            <input type="email" id="Email_Address" placeholder="Email Address">
+            <input type="tel" name="phone" value="+91 "pattern="^\+91[6-9]\d{9}$" id="Primary_Phone_Number" placeholder="Primary Phone Number">
+            <input type="date" id="Date_of_birth" placeholder="Date of birth">
+            <label for="Marital_Status">Marital Status</label>
+            <select name="Marital_Status" id="Marital_Status" placeholder="Marital Status">
+                <option value="Single">Single</option>
+                <option value="Married" selected>Married</option>
+                <option value="Divorced" >Divorced</option>
+            </select>
+            <input type="text" id="Spouse_Full_Name" placeholder="Spouse Full Name">
+            <input type="text" id="Spouse_SSN" placeholder="Spouse SSN">
+            <div class="form-container" style="display: grid; grid-template-columns: 200px 1fr; gap: 20px; max-width: 700px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+    <div style="font-size: 18px; color: #2b3d63; font-weight: 500; margin-top: 5px;">Home Address</div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
+        
+        <div style="display: flex; flex-direction: column; grid-column: span 2;">
+            <input type="text" id="address-line-1" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
+            <label for="address-line-1" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 1</label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; grid-column: span 2;">
+            <input type="text" id="address-line-2" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
+            <label for="address-line-2" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 2</label>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <input type="text" id="city-district" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
+            <label for="city-district" style="font-size: 13px; color: #616e88; margin-top: 6px;">City / District</label>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <select id="state-dropdown" disabled style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; color: #333; appearance: none; background-image: url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;">
+                <option value="" disabled selected>Select country first</option>
+            </select>
+            <label for="state-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">State / Province</label>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <input type="text" id="postal-code" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
+            <label for="postal-code" style="font-size: 13px; color: #616e88; margin-top: 6px;">Postal Code</label>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+            <select id="country-dropdown" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; color: #333; appearance: none; background-image: url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;">
+                <option value="" disabled selected>Loading countries...</option>
+            </select>
+            <label for="country-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">Country</label>
+        </div>
+
+    </div>
             <div class="btn-group">
 
                 <button onclick="prevStep(1)">

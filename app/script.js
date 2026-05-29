@@ -261,7 +261,7 @@ function saveHouseholdDetails(){
             Number_of_people_in_household: householdPeople,
             Do_you_claim_dependents: claimDependents,
             // Hidden single line text field link-name in your Creator backend form
-            Hidden_Serialized_Data: serializedData 
+            Dependents: serializedData 
         }
     };
 
@@ -299,7 +299,7 @@ function updateHouseholdDetails(){
             A_Master: formSteps[1].querySelector("#A_Master").value,
             Number_of_people_in_household: document.getElementById("Number_of_people_in_household").value,
             Do_you_claim_dependents: document.getElementById("Do_you_claim_dependents").value,
-            Hidden_Serialized_Data: document.getElementById("serializedSubformData").value
+            Dependents: document.getElementById("serializedSubformData").value
         }
     };
 
