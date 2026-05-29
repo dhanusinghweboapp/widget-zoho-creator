@@ -1,0 +1,130 @@
+<div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+    <h3 style="color: #2b3d63; margin-bottom: 15px;">Dependents</h3>
+    
+    <table id="customSubformTable" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+        <thead>
+            <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
+                <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Dependent Name</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Relationship to you</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Date of Birth</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">SSN</th>
+                <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 120px;">Full-time Student?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 8px 0; text-align: center;">
+                    <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+                </td>
+                <td style="padding: 8px 0;">
+                    <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+                </td>
+                <td style="padding: 8px 0;">
+                    <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
+                        <option value="" disabled selected>-Select-</option>
+                        <option value="Spouse">Son</option>
+                        <option value="Child">Daughter</option>
+                        <option value="Parent">Step Child</option>
+                        <option value="Other">Eligible Foster Child</option>
+                        <option value="Spouse">Brother</option>
+                        <option value="Child">Sister</option>
+                        <option value="Parent">Half Brother</option>
+                        <option value="Other">Half Sister</option>
+                        <option value="Spouse">Step Brother</option>
+                        <option value="Child">Step Sister</option>
+                        <option value="Parent">Adopted Child</option>
+                        <option value="Other">Mother</option>
+                        <option value="Spouse">Father</option>
+                        <option value="Child">Grand Parent</option>
+                        <option value="Parent">Step Mother</option>
+                        <option value="Other">Step Father</option>
+                        <option value="Spouse">In-law</option>
+                        
+                    </select>
+                </td>
+                <td style="padding: 8px 0;">
+                    <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
+                </td>
+                <td style="padding: 8px 0;">
+                    <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+                </td>
+                <td style="padding: 8px 0; text-align: center;">
+                    <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" onclick="addRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+    
+    <input type="hidden" id="serializedSubformData" name="serializedSubformData">
+</div>
+
+<script>
+    // Appends a new dependent data row dynamically with matching structure
+    function addRow() {
+        const tbody = document.querySelector("#customSubformTable tbody");
+        const newRow = document.createElement("tr");
+        newRow.className = "subform-row";
+        newRow.style.borderBottom = "1px solid #edf2f7";
+        newRow.innerHTML = `
+            <td style="padding: 8px 0; text-align: center;">
+                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+            </td>
+            <td style="padding: 8px 0;">
+                <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+            </td>
+            <td style="padding: 8px 0;">
+                <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
+                    <option value="" disabled selected>-Select-</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Other">Other</option>
+                </select>
+            </td>
+            <td style="padding: 8px 0;">
+                <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
+            </td>
+            <td style="padding: 8px 0;">
+                <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+            </td>
+            <td style="padding: 8px 0; text-align: center;">
+                <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    // Drops selected row matrix
+    function removeRow(button) {
+        const rows = document.querySelectorAll(".subform-row");
+        if(rows.length > 1) {
+            button.closest("tr").remove();
+        }
+    }
+
+    // Encodes row matrix fields into a clean delimited text string right before workflow processing
+    function serializeSubform() {
+        const rows = document.querySelectorAll(".subform-row");
+        let dataArray = [];
+        
+        rows.forEach(row => {
+            const name = row.querySelector(".dep-name").value.trim();
+            const relationship = row.querySelector(".dep-relationship").value;
+            const dob = row.querySelector(".dep-dob").value;
+            const ssn = row.querySelector(".dep-ssn").value.trim();
+            const isStudent = row.querySelector(".dep-student").checked ? "true" : "false";
+            
+            // Check to ensure name is populated to prevent saving empty database rows
+            if(name) {
+                // Generates format: Name,Relationship,DOB,SSN,isStudent
+                dataArray.push(name + "," + relationship + "," + dob + "," + ssn + "," + isStudent);
+            }
+        });
+        
+        // Combines entire array separated by string pipes (|)
+        document.getElementById("serializedSubformData").value = dataArray.join("|");
+    }
+</script>
