@@ -1,195 +1,173 @@
-<!-- STEP  7 -->
- <div class="form-step">
-    <input type="text" id="Clients" placeholder="Client">
-    <input type="text" id="Case" placeholder="Case">
-    <input type="text" id="A_Master" placeholder="A_Master">
-    
-    <label for="Do_you_own_a_vehicle">Do you own a vehicle?</label>
-    <select name="Do_you_own_a_vehicle" id="Do_you_own_a_vehicle">
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-    </select>
+<div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+    <h3 style="color: #2b3d63; margin-bottom: 15px;">Documents</h3>
 
-    <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-        <h3 style="color: #2b3d63; margin-bottom: 15px;">Vehicle details</h3>
-
-        <table id="customSubformTablevehicle" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
-            <thead>
-                <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                    <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Make</th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Model</th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
-                    <td style="padding: 8px 0; text-align: center;">
-                        <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-                    </td>
-                    <td style="padding: 8px 0;">
-                        <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                    </td>
-                    <td style="padding: 8px 0;">
-                        <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                    </td>
-                    <td style="padding: 8px 0; text-align: center;">
-                        <div>
-                            <input type="number" id="Value" class="vehicle-value" name="Value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                        </div>
-                    </td>
-                </tr>
+    <table id="customSubformTableDOCS" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 3500px;">
+        <thead>
+            <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
+                <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Client</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Type</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Name</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document File</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Description</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Image Files</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Case</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Year</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Due Date</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Date</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Uploaded By</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Workdrive URL</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">WorkDrive File ID</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned CPA</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Status</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Priority</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Staff Comments</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Record ID</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed By</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Review Comments</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed On</th>
+                <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned Reviewer</th>
+            </tr>
+        </thead>
+        <tbody>
             </tbody>
-        </table>
+    </table>
 
-        <button type="button" onclick="addRowVehicle()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+    <button type="button" onclick="addRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
 
-        <input type="hidden" id="serializedVehicleSubformData" name="serializedVehicleSubformData">
-    </div>
-   
-    <div class="btn-group">
-        <button onclick="prevStep(1)">Back</button>
-        <button id="basicBtn" onclick="saveVehicleDetails()">Save & Next</button>
-    </div>
+    <input type="hidden" id="serializedSubformData" name="serializedSubformData">
 </div>
 
- <script>
-    // ==========================================
-    // 1. BANK ACCOUNT SUBFORM LOGIC (STEP 6)
-    // ==========================================
+<script>
+    const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; box-sizing: border-box;';
     
-    function addRowBank() {
-        const tbody = document.querySelector("#customSubformTableBANK tbody");
+    // Appends a new document row dynamically
+    function addRow() {
+        const tbody = document.querySelector("#customSubformTableDOCS tbody");
         const newRow = document.createElement("tr");
         newRow.className = "subform-row";
         newRow.style.borderBottom = "1px solid #edf2f7";
+        
         newRow.innerHTML = `
             <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRowBank(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
             </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <select class="bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                    <option value="" disabled selected>-Select-</option>
-                    <option value="Saving">Saving</option>
-                    <option value="Current">Current</option>
-                    <option value="Joint Account">Joint Account</option>
-                </select>
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <div>
-                    <input type="number" class="bank-balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                </div>
-            </td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-client" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-document" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-doc-type" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-doc-name" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="file" multiple class="sf-doc-file" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-doc-desc" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="file" multiple class="sf-up-file1" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-case" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-year" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="date" class="sf-up-due" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-up-date" placeholder="DD-MMM-YYYY" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-up-by" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-url" placeholder="URL" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-id" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-cpa" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-status" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-priority" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-staff-comm" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-record-id" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-rev-by" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-rev-comm" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="date" class="sf-rev-on" style="${inputStyle}"></td>
+            <td style="padding: 8px 0;"><input type="text" class="sf-assigned-rev" style="${inputStyle}"></td>
         `;
         tbody.appendChild(newRow);
     }
 
-    function removeRowBank(button) {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
+    // Initialize with one empty row
+    document.addEventListener("DOMContentLoaded", function() {
+        addRow();
+    });
+
+    // Drops selected row matrix
+    function removeRow(button) {
+        const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
         if (rows.length > 1) {
             button.closest("tr").remove();
         }
     }
 
-    function serializeBankSubform() {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
-        let dataArray = [];
-
-        rows.forEach((row, index) => {
-            const bankNameEl = row.querySelector(".bank-name");
-            const bankTypeEl = row.querySelector(".bank-type");
-            const balanceEl = row.querySelector(".bank-balance");
-
-            const bankName = bankNameEl ? bankNameEl.value.trim() : "";
-            const bankType = bankTypeEl ? bankTypeEl.value : "";
-            const balance = balanceEl ? balanceEl.value.trim() : "";
-
-            if (bankName) {
-                dataArray.push({
-                    "Bank_Name": bankName,
-                    "Bank_Type": bankType,
-                    "Balance": balance,
-                    "record::status": "added",
-                    "row::key": `t::row_${index + 1}`
-                });
-            }
-        });
-
-        document.getElementById("serializedBankSubformData").value = JSON.stringify(dataArray);
+    // Helper: Safely gets value from an input
+    function getVal(row, selector) {
+        const el = row.querySelector(selector);
+        return el ? el.value.trim() : "";
     }
 
-    function saveBankDetails() {
-        serializeBankSubform();
-        // If you have navigation step code, add it here (e.g., nextStep(1);)
-    }
-
-    // ==========================================
-    // 2. VEHICLE SUBFORM LOGIC (STEP 7)
-    // ==========================================
-    
-    function addRowVehicle() {
-        const tbody = document.querySelector("#customSubformTablevehicle tbody");
-        const newRow = document.createElement("tr");
-        newRow.className = "subform-row";
-        newRow.style.borderBottom = "1px solid #edf2f7";
-        newRow.innerHTML = `
-            <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <div>
-                    <input type="number" class="vehicle-value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                </div>
-            </td>
-        `;
-        tbody.appendChild(newRow);
-    }
-
-    function removeRowVehicle(button) {
-        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
-        if (rows.length > 1) {
-            button.closest("tr").remove();
+    // Helper: Retrieves file names into a stringified JSON array format "[]"
+    function getFileNames(row, selector) {
+        const fileInput = row.querySelector(selector);
+        if (fileInput && fileInput.files.length > 0) {
+            const fileNames = Array.from(fileInput.files).map(f => f.name);
+            return JSON.stringify(fileNames);
         }
+        return "[]";
     }
 
-    function serializeVehicleSubform() {
-        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
+    // Helper: Formats the Workdrive URL to match the requested JSON payload structure
+    function formatWorkdriveURL(urlValue) {
+        return JSON.stringify({
+            "Workdrive_URL": urlValue,
+            "zcurl": "",
+            "zctarget": "new"
+        });
+    }
+
+    // Encodes row fields into a clean JSON string matching the exact schema requirements
+    function serializeSubform() {
+        const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
         let dataArray = [];
 
         rows.forEach((row, index) => {
-            const makeEl = row.querySelector(".vehicle-make");
-            const modelEl = row.querySelector(".vehicle-model");
-            const valueEl = row.querySelector(".vehicle-value");
+            // Require at least Client or Case to consider the row "active" and save it
+            const client = getVal(row, ".sf-client");
+            const caseId = getVal(row, ".sf-case");
 
-            const make = makeEl ? makeEl.value.trim() : "";
-            const model = modelEl ? modelEl.value.trim() : "";
-            const value = valueEl ? valueEl.value.trim() : "";
-
-            if (make) {
-                dataArray.push({
-                    "Vehicle_Make": make,
-                    "Vehicle_Model": model,
-                    "Vehicle_Value": value,
+            if (client || caseId) {
+                const rowObject = {
+                    "Client": client,
+                    "Document": getVal(row, ".sf-document"),
+                    "Document_Type": getVal(row, ".sf-doc-type"),
+                    "Document_Name": getVal(row, ".sf-doc-name"),
+                    "Document_File": getFileNames(row, ".sf-doc-file"),
+                    "Document_Desciption": getVal(row, ".sf-doc-desc"),
+                    "Upload_File1": getFileNames(row, ".sf-up-file1"),
+                    "Case": caseId,
+                    "Year_field": getVal(row, ".sf-year"),
+                    "Upload_Due_Date": getVal(row, ".sf-up-due"),
+                    "Upload_Date": getVal(row, ".sf-up-date"), 
+                    "Uploaded_By": getVal(row, ".sf-up-by"),
+                    "Workdrive_URL": formatWorkdriveURL(getVal(row, ".sf-workdrive-url")),
+                    "WorkDrive_File_ID": getVal(row, ".sf-workdrive-id"),
+                    "Assigned_CPA": getVal(row, ".sf-cpa"),
+                    "Status": getVal(row, ".sf-status"),
+                    "Priority": getVal(row, ".sf-priority"),
+                    "Staff_Comments": getVal(row, ".sf-staff-comm"),
+                    "Record_ID": getVal(row, ".sf-record-id"),
+                    "Reviewed_By": getVal(row, ".sf-rev-by"),
+                    "Review_Comments": getVal(row, ".sf-rev-comm"),
+                    "Reviewed_On": getVal(row, ".sf-rev-on"),
+                    "Assigned_Reviewer": getVal(row, ".sf-assigned-rev"),
                     "record::status": "added",
                     "row::key": `t::row_${index + 1}`
-                });
+                };
+
+                dataArray.push(rowObject);
             }
         });
 
-        document.getElementById("serializedVehicleSubformData").value = JSON.stringify(dataArray);
+        // Set the value as a clean JSON string
+        document.getElementById("serializedSubformData").value = JSON.stringify(dataArray);
     }
 
-    function saveVehicleDetails() {
-        serializeVehicleSubform();
-        // If you have final submission or step navigation code, add it here
+    // Call this before workflow processing / form submission
+    function saveDocumentDetails() {
+        serializeSubform();
+        console.log(document.getElementById("serializedSubformData").value);
     }
 </script>

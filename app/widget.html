@@ -1,855 +1,360 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <script src="https://js.zohostatic.com/creator/widgets/version/1.0/widgetsdk-min.js"></script>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Tax Resolution</title>
-
+    <script src="https://js.zohostatic.com/creator/widgets/version/1.0/widgetsdk-min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
     <div class="container">
-
+        <!-- PROGRESS BAR -->
         <div class="progress-bar">
-
             <div class="step active" onclick="goToStep(1)">
-                <span>1</span>
-                <p>Personal</p>
+                <span>1</span><p>Personal</p>
             </div>
-
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(2)">
-                <span>2</span>
-                <p>Household</p>
+                <span>2</span><p>Household</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(3)">
-                <span>3</span>
-                <p>Employment</p>
+                <span>3</span><p>Employment</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(4)">
-                <span>4</span>
-                <p>Income</p>
+                <span>4</span><p>Income</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(5)">
-                <span>5</span>
-                <p>Expenses</p>
+                <span>5</span><p>Expenses</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(6)">
-                <span>6</span>
-                <p>Bank</p>
+                <span>6</span><p>Bank</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(7)">
-                <span>7</span>
-                <p>Assets</p>
+                <span>7</span><p>Assets</p>
             </div>
             <div class="line"></div>
-
             <div class="step" onclick="goToStep(8)">
-                <span>8</span>
-                <p>Documents</p>
+                <span>8</span><p>Documents</p>
             </div>
-
         </div>
-<!-- STEP 1  -->
+
+        <!-- STEP 1: PERSONAL -->
         <div class="form-step active">
-
             <input type="text" id="Clients" placeholder="Client">
-
             <input type="text" id="Case" placeholder="Case">
-
             <input type="text" id="A_Master" placeholder="A_Master">
             <input type="text" id="Full_legal_name" placeholder="Full Legal Name">
-
             <input type="number" id="Social_Security_Number_SSN" placeholder="Social Security Number (SSN)">
             <input type="email" id="Email_Address" placeholder="Email Address">
             <input type="tel" name="phone" value="+91 " pattern="^\+91[6-9]\d{9}$" id="Primary_Phone_Number" placeholder="Primary Phone Number">
             <input type="date" id="Date_of_birth" placeholder="Date of birth">
+            
             <label for="Marital_Status">Marital Status</label>
-            <select name="Marital_Status" id="Marital_Status" placeholder="Marital Status">
+            <select name="Marital_Status" id="Marital_Status">
                 <option value="" disabled selected>-Select-</option>
                 <option value="Single">Single</option>
                 <option value="Married" selected>Married</option>
                 <option value="Divorced">Divorced</option>
             </select>
+            
             <input type="text" id="Spouse_Full_Name" placeholder="Spouse Full Name">
             <input type="text" id="Spouse_SSN" placeholder="Spouse SSN">
+            
             <div class="form-container" style="display: grid; grid-template-columns: 200px 1fr; gap: 20px; max-width: 700px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
                 <div style="font-size: 18px; color: #2b3d63; font-weight: 500; margin-top: 5px;">Home Address</div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
-
                     <div style="display: flex; flex-direction: column; grid-column: span 2;">
                         <input type="text" id="address-line-1" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
                         <label for="address-line-1" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 1</label>
                     </div>
-
                     <div style="display: flex; flex-direction: column; grid-column: span 2;">
                         <input type="text" id="address-line-2" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
                         <label for="address-line-2" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 2</label>
                     </div>
-
                     <div style="display: flex; flex-direction: column;">
                         <input type="text" id="city-district" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
                         <label for="city-district" style="font-size: 13px; color: #616e88; margin-top: 6px;">City / District</label>
                     </div>
-
                     <div style="display: flex; flex-direction: column;">
-                        <select id="state-dropdown" disabled style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; color: #333; appearance: none; background-image: url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;">
+                        <select id="state-dropdown" disabled style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; appearance: none;">
                             <option value="" disabled selected>Select country first</option>
                         </select>
                         <label for="state-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">State / Province</label>
                     </div>
-
                     <div style="display: flex; flex-direction: column;">
                         <input type="text" id="postal-code" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
                         <label for="postal-code" style="font-size: 13px; color: #616e88; margin-top: 6px;">Postal Code</label>
                     </div>
-
                     <div style="display: flex; flex-direction: column;">
-                        <select id="country-dropdown" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; color: #333; appearance: none; background-image: url(&quot;data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px;">
+                        <select id="country-dropdown" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; appearance: none;">
                             <option value="" disabled selected>Loading countries...</option>
                         </select>
                         <label for="country-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">Country</label>
                     </div>
-
                 </div>
-
-                <script>
-                    const countryEl = document.getElementById('country-dropdown');
-                    const stateEl = document.getElementById('state-dropdown');
-
-                    // Fetch countries list dynamically from API
-                    async function fetchCountries() {
-                        try {
-                            const response = await fetch('https://countriesnow.space/api/v0.1/countries/states');
-                            const data = await response.json();
-
-                            if (!data.error) {
-                                countryEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
-                                // Sort countries alphabetically
-                                const sortedCountries = data.data.sort((a, b) => a.name.localeCompare(b.name));
-
-                                sortedCountries.forEach(country => {
-                                    const opt = document.createElement('option');
-                                    opt.value = country.name;
-                                    opt.textContent = country.name;
-                                    // Attach state array onto the option element object directly for rapid retrieval
-                                    opt.dataset.states = JSON.stringify(country.states);
-                                    countryEl.appendChild(opt);
-                                });
-                            }
-                        } catch (error) {
-                            countryEl.innerHTML = '<option value="" disabled selected>Failed to load countries</option>';
-                        }
-                    }
-
-                    // On change, rapidly load corresponding states
-                    countryEl.addEventListener('change', (e) => {
-                        const selectedOption = countryEl.options[countryEl.selectedIndex];
-                        const states = JSON.parse(selectedOption.dataset.states || '[]');
-
-                        stateEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
-
-                        if (states.length > 0) {
-                            stateEl.removeAttribute('disabled');
-                            // Sort states alphabetically
-                            states.sort((a, b) => a.name.localeCompare(b.name)).forEach(state => {
-                                const opt = document.createElement('option');
-                                opt.value = state.name;
-                                opt.textContent = state.name;
-                                stateEl.appendChild(opt);
-                            });
-                        } else {
-                            stateEl.setAttribute('disabled', 'true');
-                            stateEl.innerHTML = '<option value="" disabled selected>N/A (No states found)</option>';
-                        }
-                    });
-
-                    fetchCountries();
-                </script>
             </div>
 
-            <button id="basicBtn" onclick="savePersonalDetails()">
-                Save & Next
-            </button>
-
+            <button type="button" id="basicBtn" onclick="savePersonalDetails()">Save & Next</button>
         </div>
-<!-- STEP 2  -->
+
+        <!-- STEP 2: HOUSEHOLD -->
         <div class="form-step">
-
             <input type="text" id="Clients" placeholder="Client">
-
             <input type="text" id="Case" placeholder="Case">
-
             <input type="text" id="A_Master" placeholder="A_Master">
             <input type="number" id="Number_of_people_in_household" placeholder="Number of people in household">
+            
             <label for="Do_you_claim_dependents">Do you claim dependents?</label>
             <select name="Do_you_claim_dependents" id="Do_you_claim_dependents">
                 <option value="" disabled selected>-Select-</option>
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
             </select>
+            
             <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
                 <h3 style="color: #2b3d63; margin-bottom: 15px;">Dependents</h3>
-
                 <table id="customSubformTable" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
                     <thead>
                         <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
+                            <th style="padding: 10px; width: 40px;"></th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Dependent Name</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Relationship to you</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Relationship</th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Date of Birth</th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">SSN</th>
-                            <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 120px;">Full-time Student?</th>
+                            <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 120px;">Student?</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
-                            <td style="padding: 8px 0; text-align: center;">
-                                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-                            </td>
-                            <td style="padding: 8px 0;">
-                                <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                            </td>
-                            <td style="padding: 8px 0;">
-                                <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                                    <option value="" disabled selected>-Select-</option>
-                                    <option value="Spouse">Son</option>
-                                    <option value="Child">Daughter</option>
-                                    <option value="Parent">Step Child</option>
-                                    <option value="Other">Eligible Foster Child</option>
-                                    <option value="Spouse">Brother</option>
-                                    <option value="Child">Sister</option>
-                                    <option value="Parent">Half Brother</option>
-                                    <option value="Other">Half Sister</option>
-                                    <option value="Spouse">Step Brother</option>
-                                    <option value="Child">Step Sister</option>
-                                    <option value="Parent">Adopted Child</option>
-                                    <option value="Other">Mother</option>
-                                    <option value="Spouse">Father</option>
-                                    <option value="Child">Grand Parent</option>
-                                    <option value="Parent">Step Mother</option>
-                                    <option value="Other">Step Father</option>
-                                    <option value="Spouse">In-law</option>
-
-                                </select>
-                            </td>
-                            <td style="padding: 8px 0;">
-                                <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
-                            </td>
-                            <td style="padding: 8px 0;">
-                                <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                            </td>
-                            <td style="padding: 8px 0; text-align: center;">
-                                <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
-                            </td>
-                        </tr>
+                        <!-- Initial Row generated via JS -->
                     </tbody>
                 </table>
-
-                <button type="button" onclick="addRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
-
-                <input type="hidden" id="serializedSubformData" name="serializedSubformData">
+                <button type="button" onclick="addDependentRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
             </div>
-            
-
-
-            <script>
-                // Appends a new dependent data row dynamically with matching structure
-                function addRow() {
-                    const tbody = document.querySelector("#customSubformTable tbody");
-                    const newRow = document.createElement("tr");
-                    newRow.className = "subform-row";
-                    newRow.style.borderBottom = "1px solid #edf2f7";
-                    newRow.innerHTML = `
-            <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                    <option value="" disabled selected>-Select-</option>
-                    <option value="Spouse">Spouse</option>
-                    <option value="Child">Child</option>
-                    <option value="Parent">Parent</option>
-                    <option value="Other">Other</option>
-                </select>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
-            </td>
-        `;
-                    tbody.appendChild(newRow);
-                }
-
-                // Drops selected row matrix
-                function removeRow(button) {
-                    const rows = document.querySelectorAll(".subform-row");
-                    if (rows.length > 1) {
-                        button.closest("tr").remove();
-                    }
-                }
-
-                // Encodes row matrix fields into a clean delimited text string right before workflow processing
-                function serializeSubform() {
-                    const rows = document.querySelectorAll(".subform-row");
-                    let dataArray = [];
-
-                    rows.forEach((row, index) => {
-                        const fullName = row.querySelector(".dep-name").value.trim();
-                        const relationship = row.querySelector(".dep-relationship").value;
-                        const dob = row.querySelector(".dep-dob").value;
-                        const ssn = row.querySelector(".dep-ssn").value.trim();
-                        const isStudentChecked = row.querySelector(".dep-student").checked;
-
-                        if (fullName) {
-                            // Split full name into first and last name safely for the subform structure
-                            const nameParts = fullName.split(" ");
-                            const firstName = nameParts[0] || "";
-                            const lastName = nameParts.slice(1).join(" ") || ""; // Combines middle/last names if any
-
-                            // 1. Match your expected subform format exactly
-                            const dependentNameObj = {
-                                first_name: firstName,
-                                last_name: lastName,
-                                status: "edit"
-                            };
-
-                            const rowObject = {
-                                "Dependent_Name": JSON.stringify(dependentNameObj),
-                                "Dependent_Relationship_to_you": relationship,
-                                "Date_of_Birth": dob,
-                                "SSN": ssn,
-                                "Is_dependent_full_time_Student": isStudentChecked ? "zc_checked" : "zc_unchecked",
-                                "record::status": "added",
-                                "row::key": `t::row_${index + 1}`
-                            };
-
-                            dataArray.push(rowObject);
-                        }
-                    });
-
-                    // 2. Set the value as a clean JSON string
-                    document.getElementById("serializedSubformData").value = JSON.stringify(dataArray);
-                }
-            </script>
             
             <div class="btn-group">
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-
-                <button id="educationBtn" onclick="saveHouseholdDetails()">
-                    Save & Next
-                </button>
-
+                <button type="button"  title="Back" onclick="prevStep()"></button>
+                <button type="button" id="educationBtn" onclick="saveHouseholdDetails()">Save & Next</button>
             </div>
-
         </div>
-<!-- JS COMPLETED FOR ABOVE  -->
-<!-- STEP  3 -->
-        <div class="form-step ">
 
+        <!-- STEP 3: EMPLOYMENT -->
+        <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
-
             <input type="text" id="Case" placeholder="Case">
-
             <input type="text" id="A_Master" placeholder="A_Master">
+            
             <label for="Employment_Status">Employment Status</label>
             <select name="Employment_Status" id="Employment_Status">
                 <option value="" disabled selected>-Select-</option>
-                <option value="Yes">Employed</option>
-                <option value="Yes">Self-Employed</option>
-                <option value="Yes">Unemployed</option>
+                <option value="Employed">Employed</option>
+                <option value="Self-Employed">Self-Employed</option>
+                <option value="Unemployed">Unemployed</option>
             </select>
+            
             <input type="text" id="Employer_Name" placeholder="Employer Name">
             <input type="text" id="Job_Title" placeholder="Job Title">
-             <label for="Pay_Frequency">Pay Frequency</label>
+            
+            <label for="Pay_Frequency">Pay Frequency</label>
             <select name="Pay_Frequency" id="Pay_Frequency">
                 <option value="" disabled selected>-Select-</option>
-                <option value="Yes">Weekly</option>
-                <option value="Yes">Bi-weekly</option>
-                <option value="Yes">Monthly</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Bi-weekly">Bi-weekly</option>
+                <option value="Monthly">Monthly</option>
             </select>
+            
             <label for="Gross_Pay_Per_Paycheck">Gross Pay Per Paycheck</label>
-            <div>
-                <input type="number" id="Gross_Pay_Per_Paycheck" name="Gross_Pay_Per_Paycheck" placeholder="$ ##,###,###" />
-            </div>
-             <label for="Net_Pay_Per_Paycheck">Net Pay Per Paycheck</label>
-            <div>
-                <input type="number" id="Net_Pay_Per_Paycheck" name="Net_Pay_Per_Paycheck" placeholder="$ ##,###,###" />
-            </div>
-             <div class="btn-group">
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-            <button id="basicBtn" onclick="saveEmploymentDetails()">
-                Save & Next
-            </button>
- </div>
-        </div> 
-
-        <!-- STEP  4 -->
-        <div class="form-step ">
-
-            <input type="text" id="Clients" placeholder="Client">
-
-            <input type="text" id="Case" placeholder="Case">
-
-            <input type="text" id="A_Master" placeholder="A_Master">
-             <label for="Monthly_Wage_Income">Monthly Wage Income</label>
-            <div>
-                <input type="number" id="Monthly_Wage_Income" name="Monthly_Wage_Income" placeholder="$ ##,###,###" />
-            </div>
-             <label for="Self_Employment_Income">Self-Employment Income</label>
-            <div>
-                <input type="number" id="Self_Employment_Income" name="Self_Employment_Income" placeholder="$ ##,###,###" />
-            </div>
-            <label for="Other_Income_Sources">Other Income Sources</label>
-<textarea id="Other_Income_Sources" name="Other_Income_Sources" rows="4" cols="50">
-
-</textarea>
-           
- <div class="btn-group">
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-            <button id="basicBtn" onclick="saveIncomeDetails()">
-                Save & Next
-            </button>
- </div>
-        </div> 
-       <!-- STEP  5 -->
-        <div class="form-step ">
-
-            <input type="text" id="Clients" placeholder="Client">
-
-            <input type="text" id="Case" placeholder="Case">
-
-            <input type="text" id="A_Master" placeholder="A_Master">
+            <div><input type="number" id="Gross_Pay_Per_Paycheck" name="Gross_Pay_Per_Paycheck" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Net_Pay_Per_Paycheck">Net Pay Per Paycheck</label>
+            <div><input type="number" id="Net_Pay_Per_Paycheck" name="Net_Pay_Per_Paycheck" placeholder="$ ##,###,###" /></div>
+            
             <div class="btn-group">
-                <label for="Monthly_Rent_or_Mortgage">Monthly Rent or Mortgage</label>
-            <div>
-                <input type="number" id="Monthly_Rent_or_Mortgage" name="Monthly_Rent_or_Mortgage" placeholder="$ ##,###,###" />
+                <button type="button"  title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveEmploymentDetails()">Save & Next</button>
             </div>
-             <label for="Utilities_total">Utilities</label>
-            <div>
-                <input type="number" id="Utilities_total" name="Utilities_total" placeholder="$ ##,###,###" />
-            </div>
-            <label for="Food_and_Household_Expenses">Food and Household Expenses</label>
-            <div>
-                <input type="number" id="Food_and_Household_Expenses" name="Food_and_Household_Expenses" placeholder="$ ##,###,###" />
-            </div>
-             <label for="Medical_Expenses">Medical Expenses</label>
-            <div>
-                <input type="number" id="Medical_Expenses" name="Medical_Expenses" placeholder="$ ##,###,###" />
-            </div>
-             <label for="Transportation_Expenses">Transportation Expenses</label>
-            <div>
-                <input type="number" id="Transportation_Expenses" name="Transportation_Expenses" placeholder="$ ##,###,###" />
-            </div>
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-
-            <button id="basicBtn" onclick="saveExpensesDetails()">
-                Save & Next
-            </button>
- </div>
         </div> 
-        <!-- STEP  6 -->
-        <div class="form-step ">
 
+        <!-- STEP 4: INCOME -->
+        <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
-
             <input type="text" id="Case" placeholder="Case">
-
             <input type="text" id="A_Master" placeholder="A_Master">
+            
+            <label for="Monthly_Wage_Income">Monthly Wage Income</label>
+            <div><input type="number" id="Monthly_Wage_Income" name="Monthly_Wage_Income" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Self_Employment_Income">Self-Employment Income</label>
+            <div><input type="number" id="Self_Employment_Income" name="Self_Employment_Income" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Other_Income_Sources">Other Income Sources</label>
+            <textarea id="Other_Income_Sources" name="Other_Income_Sources" rows="4"></textarea>
+            
+            <div class="btn-group">
+                <button type="button" title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveIncomeDetails()">Save & Next</button>
+            </div>
+        </div> 
+
+        <!-- STEP 5: EXPENSES -->
+        <div class="form-step">
+            <input type="text" id="Clients" placeholder="Client">
+            <input type="text" id="Case" placeholder="Case">
+            <input type="text" id="A_Master" placeholder="A_Master">
+            
+            <label for="Monthly_Rent_or_Mortgage">Monthly Rent or Mortgage</label>
+            <div><input type="number" id="Monthly_Rent_or_Mortgage" name="Monthly_Rent_or_Mortgage" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Utilities_total">Utilities</label>
+            <div><input type="number" id="Utilities_total" name="Utilities_total" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Food_and_Household_Expenses">Food and Household Expenses</label>
+            <div><input type="number" id="Food_and_Household_Expenses" name="Food_and_Household_Expenses" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Medical_Expenses">Medical Expenses</label>
+            <div><input type="number" id="Medical_Expenses" name="Medical_Expenses" placeholder="$ ##,###,###" /></div>
+            
+            <label for="Transportation_Expenses">Transportation Expenses</label>
+            <div><input type="number" id="Transportation_Expenses" name="Transportation_Expenses" placeholder="$ ##,###,###" /></div>
+
+            <div class="btn-group">
+                <button type="button" title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveExpensesDetails()">Save & Next</button>
+            </div>
+        </div> 
+
+        <!-- STEP 6: BANK -->
+        <div class="form-step">
+            <input type="text" id="Clients" placeholder="Client">
+            <input type="text" id="Case" placeholder="Case">
+            <input type="text" id="A_Master" placeholder="A_Master">
+            
             <label for="Do_you_have_bank_accounts">Do you have bank accounts?</label>
             <select name="Do_you_have_bank_accounts" id="Do_you_have_bank_accounts">
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
             </select>
-                     <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+            
+            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
                 <h3 style="color: #2b3d63; margin-bottom: 15px;">Bank Account Details</h3>
-
                 <table id="customSubformTableBANK" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
                     <thead>
                         <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
+                            <th style="padding: 10px; width: 40px;"></th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Bank Name</th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Bank Type</th>
                             <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Balance</th>
-                           
                         </tr>
                     </thead>
                     <tbody>
-    <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
-        <td style="padding: 8px 0; text-align: center;">
-            <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-        </td>
-        <td style="padding: 8px 0;">
-            <input type="text" class="dep-name bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-        </td>
-        <td style="padding: 8px 0;">
-            <select class="dep-relationship bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                <option value="" disabled selected>-Select-</option>
-                <option value="Saving">Saving</option>
-                <option value="Current">Current</option>
-                <option value="Joint Account">Joint Account</option>
-            </select>
-        </td>
-        <td style="padding: 8px 0; text-align: center;">
-            <div>
-                <input type="number" id="Balance" class="bank-balance" name="Balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-            </div>
-        </td>
-    </tr>
-</tbody>
+                        <!-- Initial Row generated via JS -->
+                    </tbody>
                 </table>
-
-                <button type="button" onclick="addRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
-
-                <input type="hidden" id="serializedSubformData" name="serializedSubformData">
+                <button type="button" onclick="addBankRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
             </div>
-           
- <div class="btn-group">
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-            <button id="basicBtn" onclick="saveBankDetails()">
-                Save & Next
-            </button>
- </div>
+            
+            <div class="btn-group">
+                <button type="button" title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveBankDetails()">Save & Next</button>
+            </div>
         </div> 
-        <script>
-    // Appends a new bank account row dynamically with matching structure
-    function addRow() {
-        const tbody = document.querySelector("#customSubformTableBANK tbody");
-        const newRow = document.createElement("tr");
-        newRow.className = "subform-row";
-        newRow.style.borderBottom = "1px solid #edf2f7";
-        newRow.innerHTML = `
-            <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <select class="bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                    <option value="" disabled selected>-Select-</option>
-                    <option value="Saving">Saving</option>
-                    <option value="Current">Current</option>
-                    <option value="Joint Account">Joint Account</option>
-                </select>
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <div>
-                    <input type="number" class="bank-balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                </div>
-            </td>
-        `;
-        tbody.appendChild(newRow);
-    }
 
-    // Drops selected row matrix
-    function removeRow(button) {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
-        if (rows.length > 1) {
-            button.closest("tr").remove();
-        }
-    }
-
-    // Encodes bank row fields into a clean JSON string right before workflow processing
-    function serializeSubform() {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
-        let dataArray = [];
-
-        rows.forEach((row, index) => {
-            // Using updated class names for reliable multi-row tracking
-            const bankNameEl = row.querySelector(".bank-name") || row.querySelector(".dep-name");
-            const bankTypeEl = row.querySelector(".bank-type") || row.querySelector(".dep-relationship");
-            const balanceEl = row.querySelector(".bank-balance") || row.querySelector("#Balance");
-
-            const bankName = bankNameEl ? bankNameEl.value.trim() : "";
-            const bankType = bankTypeEl ? bankTypeEl.value : "";
-            const balance = balanceEl ? balanceEl.value.trim() : "";
-
-            if (bankName) {
-                const rowObject = {
-                    "Bank_Name": bankName,
-                    "Bank_Type": bankType,
-                    "Balance": balance,
-                    "record::status": "added",
-                    "row::key": `t::row_${index + 1}`
-                };
-
-                dataArray.push(rowObject);
-            }
-        });
-
-        // Set the value as a clean JSON string
-        document.getElementById("serializedSubformData").value = JSON.stringify(dataArray);
-    }
-
-    // Optional handler if your "Save & Next" button explicitly calls saveBankDetails()
-    function saveBankDetails() {
-        serializeSubform();
-        // Add any step navigation logic here if needed (e.g., nextStep(1);)
-    }
-</script>
-        <!-- STEP  7 -->
- <div class="form-step">
-    <input type="text" id="Clients" placeholder="Client">
-    <input type="text" id="Case" placeholder="Case">
-    <input type="text" id="A_Master" placeholder="A_Master">
-    
-    <label for="Do_you_own_a_vehicle">Do you own a vehicle?</label>
-    <select name="Do_you_own_a_vehicle" id="Do_you_own_a_vehicle">
-        <option value="Yes">Yes</option>
-        <option value="No">No</option>
-    </select>
-
-    <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-        <h3 style="color: #2b3d63; margin-bottom: 15px;">Vehicle details</h3>
-
-        <table id="customSubformTablevehicle" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
-            <thead>
-                <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                    <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 40px;"></th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Make</th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Model</th>
-                    <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="subform-row" style="border-bottom: 1px solid #edf2f7;">
-                    <td style="padding: 8px 0; text-align: center;">
-                        <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-                    </td>
-                    <td style="padding: 8px 0;">
-                        <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                    </td>
-                    <td style="padding: 8px 0;">
-                        <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-                    </td>
-                    <td style="padding: 8px 0; text-align: center;">
-                        <div>
-                            <input type="number" id="Value" class="vehicle-value" name="Value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <button type="button" onclick="addRowVehicle()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
-
-        <input type="hidden" id="serializedVehicleSubformData" name="serializedVehicleSubformData">
-    </div>
-   
-    <div class="btn-group">
-        <button onclick="prevStep(1)">Back</button>
-        <button id="basicBtn" onclick="saveVehicleDetails()">Save & Next</button>
-    </div>
-</div>
-
- <script>
-    // ==========================================
-    // 1. BANK ACCOUNT SUBFORM LOGIC (STEP 6)
-    // ==========================================
-    
-    function addRowBank() {
-        const tbody = document.querySelector("#customSubformTableBANK tbody");
-        const newRow = document.createElement("tr");
-        newRow.className = "subform-row";
-        newRow.style.borderBottom = "1px solid #edf2f7";
-        newRow.innerHTML = `
-            <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRowBank(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <select class="bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
-                    <option value="" disabled selected>-Select-</option>
-                    <option value="Saving">Saving</option>
-                    <option value="Current">Current</option>
-                    <option value="Joint Account">Joint Account</option>
-                </select>
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <div>
-                    <input type="number" class="bank-balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                </div>
-            </td>
-        `;
-        tbody.appendChild(newRow);
-    }
-
-    function removeRowBank(button) {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
-        if (rows.length > 1) {
-            button.closest("tr").remove();
-        }
-    }
-
-    function serializeBankSubform() {
-        const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
-        let dataArray = [];
-
-        rows.forEach((row, index) => {
-            const bankNameEl = row.querySelector(".bank-name");
-            const bankTypeEl = row.querySelector(".bank-type");
-            const balanceEl = row.querySelector(".bank-balance");
-
-            const bankName = bankNameEl ? bankNameEl.value.trim() : "";
-            const bankType = bankTypeEl ? bankTypeEl.value : "";
-            const balance = balanceEl ? balanceEl.value.trim() : "";
-
-            if (bankName) {
-                dataArray.push({
-                    "Bank_Name": bankName,
-                    "Bank_Type": bankType,
-                    "Balance": balance,
-                    "record::status": "added",
-                    "row::key": `t::row_${index + 1}`
-                });
-            }
-        });
-
-        document.getElementById("serializedBankSubformData").value = JSON.stringify(dataArray);
-    }
-
-    function saveBankDetails() {
-        serializeBankSubform();
-        // If you have navigation step code, add it here (e.g., nextStep(1);)
-    }
-
-    // ==========================================
-    // 2. VEHICLE SUBFORM LOGIC (STEP 7)
-    // ==========================================
-    
-    function addRowVehicle() {
-        const tbody = document.querySelector("#customSubformTablevehicle tbody");
-        const newRow = document.createElement("tr");
-        newRow.className = "subform-row";
-        newRow.style.borderBottom = "1px solid #edf2f7";
-        newRow.innerHTML = `
-            <td style="padding: 8px 0; text-align: center;">
-                <button type="button" onclick="removeRowVehicle(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0;">
-                <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
-            </td>
-            <td style="padding: 8px 0; text-align: center;">
-                <div>
-                    <input type="number" class="vehicle-value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" />
-                </div>
-            </td>
-        `;
-        tbody.appendChild(newRow);
-    }
-
-    function removeRowVehicle(button) {
-        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
-        if (rows.length > 1) {
-            button.closest("tr").remove();
-        }
-    }
-
-    function serializeVehicleSubform() {
-        const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
-        let dataArray = [];
-
-        rows.forEach((row, index) => {
-            const makeEl = row.querySelector(".vehicle-make");
-            const modelEl = row.querySelector(".vehicle-model");
-            const valueEl = row.querySelector(".vehicle-value");
-
-            const make = makeEl ? makeEl.value.trim() : "";
-            const model = modelEl ? modelEl.value.trim() : "";
-            const value = valueEl ? valueEl.value.trim() : "";
-
-            if (make) {
-                dataArray.push({
-                    "Vehicle_Make": make,
-                    "Vehicle_Model": model,
-                    "Vehicle_Value": value,
-                    "record::status": "added",
-                    "row::key": `t::row_${index + 1}`
-                });
-            }
-        });
-
-        document.getElementById("serializedVehicleSubformData").value = JSON.stringify(dataArray);
-    }
-
-    function saveVehicleDetails() {
-        serializeVehicleSubform();
-        // If you have final submission or step navigation code, add it here
-    }
-</script>
-       <!-- STEP  8 -->
-        <div class="form-step ">
-
+        <!-- STEP 7: ASSETS -->
+        <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
-
             <input type="text" id="Case" placeholder="Case">
+            <input type="text" id="A_Master" placeholder="A_Master">
+            
+            <label for="Do_you_own_a_vehicle">Do you own a vehicle?</label>
+            <select name="Do_you_own_a_vehicle" id="Do_you_own_a_vehicle">
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
 
+            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+                <h3 style="color: #2b3d63; margin-bottom: 15px;">Vehicle details</h3>
+                <table id="customSubformTablevehicle" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+                    <thead>
+                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
+                            <th style="padding: 10px; width: 40px;"></th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Make</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Model</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Initial Row generated via JS -->
+                    </tbody>
+                </table>
+                <button type="button" onclick="addVehicleRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+            </div>
+            
+            <div class="btn-group">
+                <button type="button"  title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveVehicleDetails()">Save & Next</button>
+            </div>
+        </div>
+
+        <!-- STEP 8: DOCUMENTS -->
+        <div class="form-step">
+            <input type="text" id="Clients" placeholder="Client">
+            <input type="text" id="Case" placeholder="Case">
             <input type="text" id="A_Master" placeholder="A_Master">
             <input type="text" id="Personal_Master" placeholder="Personal_Master">
-
             <input type="text" id="Entity_Master" placeholder="Entity_Master">
-           
- <div class="btn-group">
-
-                <button onclick="prevStep(1)">
-                    Back
-                </button>
-            <button id="basicBtn" onclick="saveDocumentsDetails()">
-                Save & Next
-            </button>
- </div>
+            
+            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
+                <h3 style="color: #2b3d63; margin-bottom: 15px;">Documents</h3>
+                <table id="customSubformTableDOCS" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 3500px;">
+                    <thead>
+                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
+                            <th style="padding: 10px; width: 40px;"></th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Client</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Type</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Name</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document File</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Description</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Image Files</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Case</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Year</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Due Date</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Date</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Uploaded By</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Workdrive URL</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">WorkDrive File ID</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned CPA</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Status</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Priority</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Staff Comments</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Record ID</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed By</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Review Comments</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed On</th>
+                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned Reviewer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Initial Row generated via JS -->
+                    </tbody>
+                </table>
+                <button type="button" onclick="addDocumentRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+            </div>
+            
+            <div class="btn-group">
+                <button type="button"  title="Back" onclick="prevStep()"></button>
+                <button type="button" id="basicBtn" onclick="saveDocumentsDetails()">Save & Next</button>
+            </div>
         </div> 
+
     </div>
+
     <script src="script.js"></script>
-
 </body>
-
 </html>

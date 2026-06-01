@@ -1,5 +1,4 @@
 const APP_NAME = "hopkins-cpa";
-
 let currentStep = 1;
 
 const formSteps = document.querySelectorAll(".form-step");
@@ -17,6 +16,10 @@ let bankRecordId = null;
 let vehicleRecordId = null;
 let documentsRecordId = null;
 
+// Track your files in memory before uploading
+let fileArrayOne = [];
+let fileArrayTwo = [];
+
 // ======================================
 // INIT
 // ======================================
@@ -24,27 +27,26 @@ ZOHO.CREATOR.init().then(function () {
     console.log("Widget Initialized");
 });
 
+document.addEventListener("DOMContentLoaded", function() {
+    fetchCountries();
+    // Initialize one row for each subform
+    addDependentRow();
+    addBankRow();
+    addVehicleRow();
+    addDocumentRow();
+});
+
 // ======================================
-// SHOW STEP
+// NAVIGATION
 // ======================================
 function showStep(step) {
-    formSteps.forEach((form) => {
-        form.classList.remove("active");
-    });
-
-    steps.forEach((item) => {
-        item.classList.remove("active");
-    });
-
+    formSteps.forEach((form) => form.classList.remove("active"));
+    steps.forEach((item) => item.classList.remove("active"));
     formSteps[step - 1].classList.add("active");
     steps[step - 1].classList.add("active");
-
     currentStep = step;
 }
 
-// ======================================
-// STEP CLICK NAVIGATION
-// ======================================
 function goToStep(step) {
     if (step == 1) { showStep(1); }
     else if (step == 2) { personalRecordId ? showStep(2) : alert("Please complete Personal Details first"); }
@@ -56,13 +58,57 @@ function goToStep(step) {
     else if (step == 8) { vehicleRecordId ? showStep(8) : alert("Please complete Assets Details first"); }
 }
 
-// ======================================
-// BACK BUTTON (Dynamically goes to prev step)
-// ======================================
-function prevStep(step) {
+function prevStep() {
     let targetStep = currentStep - 1;
     if (targetStep < 1) targetStep = 1;
     showStep(targetStep);
+}
+
+// ======================================
+// EXTERNAL API (Countries & States)
+// ======================================
+async function fetchCountries() {
+    const countryEl = document.getElementById('country-dropdown');
+    const stateEl = document.getElementById('state-dropdown');
+    
+    try {
+        const response = await fetch('https://countriesnow.space/api/v0.1/countries/states');
+        const data = await response.json();
+
+        if (!data.error) {
+            countryEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
+            const sortedCountries = data.data.sort((a, b) => a.name.localeCompare(b.name));
+
+            sortedCountries.forEach(country => {
+                const opt = document.createElement('option');
+                opt.value = country.name;
+                opt.textContent = country.name;
+                opt.dataset.states = JSON.stringify(country.states);
+                countryEl.appendChild(opt);
+            });
+        }
+    } catch (error) {
+        countryEl.innerHTML = '<option value="" disabled selected>Failed to load countries</option>';
+    }
+
+    countryEl.addEventListener('change', (e) => {
+        const selectedOption = countryEl.options[countryEl.selectedIndex];
+        const states = JSON.parse(selectedOption.dataset.states || '[]');
+
+        stateEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
+        if (states.length > 0) {
+            stateEl.removeAttribute('disabled');
+            states.sort((a, b) => a.name.localeCompare(b.name)).forEach(state => {
+                const opt = document.createElement('option');
+                opt.value = state.name;
+                opt.textContent = state.name;
+                stateEl.appendChild(opt);
+            });
+        } else {
+            stateEl.setAttribute('disabled', 'true');
+            stateEl.innerHTML = '<option value="" disabled selected>N/A (No states found)</option>';
+        }
+    });
 }
 
 // ======================================
@@ -70,37 +116,25 @@ function prevStep(step) {
 // ======================================
 function savePersonalDetails() {
     const stepIndex = 0;
-    const clients = formSteps[stepIndex].querySelector("#Clients").value;
-    const caseId = formSteps[stepIndex].querySelector("#Case").value;
-    const aMaster = formSteps[stepIndex].querySelector("#A_Master").value;
-    const name = formSteps[stepIndex].querySelector("#Full_legal_name").value;
-    const ssn = formSteps[stepIndex].querySelector("#Social_Security_Number_SSN").value;
-    const email = formSteps[stepIndex].querySelector("#Email_Address").value;
-    const phone = formSteps[stepIndex].querySelector("#Primary_Phone_Number").value;
-    const dob = formSteps[stepIndex].querySelector("#Date_of_birth").value;
-    const marital = formSteps[stepIndex].querySelector("#Marital_Status").value;
-    const spouseName = formSteps[stepIndex].querySelector("#Spouse_Full_Name").value;
-    const spouseSsn = formSteps[stepIndex].querySelector("#Spouse_SSN").value;
-    
-    const addr1 = formSteps[stepIndex].querySelector("#address-line-1").value;
-    const addr2 = formSteps[stepIndex].querySelector("#address-line-2").value;
-    const city = formSteps[stepIndex].querySelector("#city-district").value;
-    const state = formSteps[stepIndex].querySelector("#state-dropdown").value;
-    const zip = formSteps[stepIndex].querySelector("#postal-code").value;
-    const country = formSteps[stepIndex].querySelector("#country-dropdown").value;
-
-    if (name == "" || ssn == "" || email == "") {
-        alert("Please fill mandatory fields");
-        return;
-    }
-
     const formData = {
         data: {
-            Clients: clients, Case: caseId, A_Master: aMaster, Full_legal_name: name,
-            Social_Security_Number_SSN: ssn, Email_Address: email, Primary_Phone_Number: phone,
-            Date_of_birth: dob, Marital_Status: marital, Spouse_Full_Name: spouseName, Spouse_SSN: spouseSsn,
-            Address_Line_1: addr1, Address_Line_2: addr2, City_District: city, State_Province: state,
-            Postal_Code: zip, Country: country
+            Clients: formSteps[stepIndex].querySelector("#Clients").value,
+            Case: formSteps[stepIndex].querySelector("#Case").value,
+            A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
+            Full_legal_name: formSteps[stepIndex].querySelector("#Full_legal_name").value,
+            Social_Security_Number_SSN: formSteps[stepIndex].querySelector("#Social_Security_Number_SSN").value,
+            Email_Address: formSteps[stepIndex].querySelector("#Email_Address").value,
+            Primary_Phone_Number: formSteps[stepIndex].querySelector("#Primary_Phone_Number").value,
+            Date_of_birth: formSteps[stepIndex].querySelector("#Date_of_birth").value,
+            Marital_Status: formSteps[stepIndex].querySelector("#Marital_Status").value,
+            Spouse_Full_Name: formSteps[stepIndex].querySelector("#Spouse_Full_Name").value,
+            Spouse_SSN: formSteps[stepIndex].querySelector("#Spouse_SSN").value,
+            Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
+            Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
+            City_District: formSteps[stepIndex].querySelector("#city-district").value,
+            State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
+            Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
+            Country: formSteps[stepIndex].querySelector("#country-dropdown").value
         }
     };
 
@@ -155,42 +189,82 @@ function updatePersonalDetails() {
     });
 }
 
-
 // ======================================
 // STEP 2: HOUSEHOLD DETAILS
 // ======================================
+function addDependentRow() {
+    const tbody = document.querySelector("#customSubformTable tbody");
+    const newRow = document.createElement("tr");
+    newRow.className = "subform-row";
+    newRow.style.borderBottom = "1px solid #edf2f7";
+    newRow.innerHTML = `
+        <td style="padding: 8px 0; text-align: center;">
+            <button type="button" onclick="removeDependentRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="text" class="dep-name" placeholder="Dependent Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+        </td>
+        <td style="padding: 8px 0;">
+            <select class="dep-relationship" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
+                <option value="" disabled selected>-Select-</option>
+                <option value="Son">Son</option>
+                <option value="Daughter">Daughter</option>
+                <option value="Step Child">Step Child</option>
+                <option value="Eligible Foster Child">Eligible Foster Child</option>
+                <option value="Brother">Brother</option>
+                <option value="Sister">Sister</option>
+                <option value="Half Brother">Half Brother</option>
+                <option value="Half Sister">Half Sister</option>
+                <option value="Step Brother">Step Brother</option>
+                <option value="Step Sister">Step Sister</option>
+                <option value="Adopted Child">Adopted Child</option>
+                <option value="Mother">Mother</option>
+                <option value="Father">Father</option>
+                <option value="Grand Parent">Grand Parent</option>
+                <option value="Step Mother">Step Mother</option>
+                <option value="Step Father">Step Father</option>
+                <option value="In-law">In-law</option>
+            </select>
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+        </td>
+        <td style="padding: 8px 0; text-align: center;">
+            <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
+        </td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeDependentRow(button) {
+    const rows = document.querySelectorAll("#customSubformTable .subform-row");
+    if (rows.length > 1) button.closest("tr").remove();
+}
+
 function serializeDependentsSubform() {
     const rows = document.querySelectorAll("#customSubformTable .subform-row");
     let dataArray = [];
 
     rows.forEach((row, index) => {
         const nameInput = row.querySelector(".dep-name");
-        const relInput = row.querySelector(".dep-relationship");
-        const dobInput = row.querySelector(".dep-dob");
-        const ssnInput = row.querySelector(".dep-ssn");
-        const studentInput = row.querySelector(".dep-student");
-
         if (!nameInput) return;
 
         const fullName = nameInput.value.trim();
-        const relationship = relInput ? relInput.value : "";
-        const dob = dobInput ? dobInput.value : "";
-        const ssn = ssnInput ? ssnInput.value.trim() : "";
-        const isStudentChecked = studentInput ? studentInput.checked : false;
+        const relationship = row.querySelector(".dep-relationship").value;
+        const dob = row.querySelector(".dep-dob").value;
+        const ssn = row.querySelector(".dep-ssn").value.trim();
+        const isStudentChecked = row.querySelector(".dep-student").checked;
 
         if (fullName) {
             const nameParts = fullName.split(" ");
             const firstName = nameParts[0] || "";
             const lastName = nameParts.slice(1).join(" ") || "";
 
-            const dependentNameObj = {
-                first_name: firstName,
-                last_name: lastName,
-                status: "edit"
-            };
-
             dataArray.push({
-                "Dependent_Name": JSON.stringify(dependentNameObj),
+                "Dependent_Name": JSON.stringify({ first_name: firstName, last_name: lastName, status: "edit" }),
                 "Dependent_Relationship_to_you": relationship,
                 "Date_of_Birth": dob,
                 "SSN": ssn,
@@ -200,28 +274,19 @@ function serializeDependentsSubform() {
             });
         }
     });
-    return JSON.stringify(dataArray);
+    return dataArray;
 }
 
 function saveHouseholdDetails() {
     const stepIndex = 1;
-    const serializedData = serializeDependentsSubform();
-    const householdPeople = formSteps[stepIndex].querySelector("#Number_of_people_in_household").value;
-    const claimDependents = formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value;
-
-    if (householdPeople === "") {
-        alert("Please specify the number of people in the household");
-        return;
-    }
-
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Number_of_people_in_household: householdPeople,
-            Do_you_claim_dependents: claimDependents,
-            Dependents: serializedData
+            Number_of_people_in_household: formSteps[stepIndex].querySelector("#Number_of_people_in_household").value,
+            Do_you_claim_dependents: formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value,
+            Dependents: serializeDependentsSubform()
         }
     };
 
@@ -232,10 +297,8 @@ function saveHouseholdDetails() {
             alert("Household Details Saved");
             householdRecordId = response.data.ID;
             const btn = formSteps[stepIndex].querySelector("#educationBtn");
-            if (btn) {
-                btn.innerText = "Update & Next";
-                btn.onclick = updateHouseholdDetails;
-            }
+            btn.innerText = "Update & Next";
+            btn.onclick = updateHouseholdDetails;
             steps[stepIndex].classList.add("completed");
             showStep(3);
         }
@@ -264,7 +327,6 @@ function updateHouseholdDetails() {
         }
     });
 }
-
 
 // ======================================
 // STEP 3: EMPLOYMENT DETAILS
@@ -328,7 +390,6 @@ function updateEmploymentDetails() {
     });
 }
 
-
 // ======================================
 // STEP 4: INCOME DETAILS
 // ======================================
@@ -351,11 +412,9 @@ function saveIncomeDetails() {
         if (response.code == 3000) {
             alert("Income Details Saved");
             incomeRecordId = response.data.ID;
-            
             const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
             btn.innerText = "Update & Next";
             btn.onclick = updateIncomeDetails;
-            
             steps[stepIndex].classList.add("completed");
             showStep(5);
         }
@@ -385,7 +444,6 @@ function updateIncomeDetails() {
     });
 }
 
-
 // ======================================
 // STEP 5: EXPENSES DETAILS
 // ======================================
@@ -410,11 +468,9 @@ function saveExpensesDetails() {
         if (response.code == 3000) {
             alert("Expense Details Saved");
             expensesRecordId = response.data.ID;
-            
             const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
             btn.innerText = "Update & Next";
             btn.onclick = updateExpensesDetails;
-            
             steps[stepIndex].classList.add("completed");
             showStep(6);
         }
@@ -446,24 +502,49 @@ function updateExpensesDetails() {
     });
 }
 
-
 // ======================================
 // STEP 6: BANK DETAILS
 // ======================================
+function addBankRow() {
+    const tbody = document.querySelector("#customSubformTableBANK tbody");
+    const newRow = document.createElement("tr");
+    newRow.className = "subform-row";
+    newRow.style.borderBottom = "1px solid #edf2f7";
+    newRow.innerHTML = `
+        <td style="padding: 8px 0; text-align: center;">
+            <button type="button" onclick="removeBankRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="text" class="bank-name" placeholder="Bank Name" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+        </td>
+        <td style="padding: 8px 0;">
+            <select class="bank-type" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; background: #fff; color: #333;">
+                <option value="" disabled selected>-Select-</option>
+                <option value="Saving">Saving</option>
+                <option value="Current">Current</option>
+                <option value="Joint Account">Joint Account</option>
+            </select>
+        </td>
+        <td style="padding: 8px 0; text-align: center;">
+            <div><input type="number" class="bank-balance" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" /></div>
+        </td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeBankRow(button) {
+    const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
+    if (rows.length > 1) button.closest("tr").remove();
+}
+
 function serializeBankSubform() {
     const rows = document.querySelectorAll("#customSubformTableBANK .subform-row");
     let dataArray = [];
 
     rows.forEach((row, index) => {
-        const bankNameEl = row.querySelector(".bank-name");
-        if (!bankNameEl) return; 
-
-        const bankTypeEl = row.querySelector(".bank-type");
-        const balanceEl = row.querySelector(".bank-balance");
-
-        const bankName = bankNameEl.value.trim();
-        const bankType = bankTypeEl ? bankTypeEl.value : "";
-        const balance = balanceEl ? balanceEl.value.trim() : "";
+        const bankName = row.querySelector(".bank-name").value.trim();
+        const bankType = row.querySelector(".bank-type").value;
+        const balance = row.querySelector(".bank-balance").value.trim();
 
         if (bankName) {
             dataArray.push({
@@ -475,20 +556,18 @@ function serializeBankSubform() {
             });
         }
     });
-    return JSON.stringify(dataArray);
+    return dataArray;
 }
 
 function saveBankDetails() {
     const stepIndex = 5;
-    const serializedData = serializeBankSubform();
-
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Do_you_have_bank_accounts: formSteps[stepIndex].querySelector("#Do_you_have_bank_accounts").value,
-            Bank_Account_Details: serializedData
+            Bank_Account_Details: serializeBankSubform()
         }
     };
 
@@ -498,11 +577,9 @@ function saveBankDetails() {
         if (response.code == 3000) {
             alert("Bank Details Saved");
             bankRecordId = response.data.ID;
-            
             const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
             btn.innerText = "Update & Next";
             btn.onclick = updateBankDetails;
-            
             steps[stepIndex].classList.add("completed");
             showStep(7);
         }
@@ -531,24 +608,44 @@ function updateBankDetails() {
     });
 }
 
-
 // ======================================
 // STEP 7: ASSETS / VEHICLE DETAILS
 // ======================================
+function addVehicleRow() {
+    const tbody = document.querySelector("#customSubformTablevehicle tbody");
+    const newRow = document.createElement("tr");
+    newRow.className = "subform-row";
+    newRow.style.borderBottom = "1px solid #edf2f7";
+    newRow.innerHTML = `
+        <td style="padding: 8px 0; text-align: center;">
+            <button type="button" onclick="removeVehicleRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="text" class="vehicle-make" placeholder="Make" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+        </td>
+        <td style="padding: 8px 0;">
+            <input type="text" class="vehicle-model" placeholder="Model" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
+        </td>
+        <td style="padding: 8px 0; text-align: center;">
+            <div><input type="number" class="vehicle-value" placeholder="$ ##,###,###" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;" /></div>
+        </td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeVehicleRow(button) {
+    const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
+    if (rows.length > 1) button.closest("tr").remove();
+}
+
 function serializeVehicleSubform() {
     const rows = document.querySelectorAll("#customSubformTablevehicle .subform-row");
     let dataArray = [];
 
     rows.forEach((row, index) => {
-        const makeEl = row.querySelector(".vehicle-make");
-        if (!makeEl) return;
-
-        const modelEl = row.querySelector(".vehicle-model");
-        const valueEl = row.querySelector(".vehicle-value");
-
-        const make = makeEl.value.trim();
-        const model = modelEl ? modelEl.value.trim() : "";
-        const value = valueEl ? valueEl.value.trim() : "";
+        const make = row.querySelector(".vehicle-make").value.trim();
+        const model = row.querySelector(".vehicle-model").value.trim();
+        const value = row.querySelector(".vehicle-value").value.trim();
 
         if (make) {
             dataArray.push({
@@ -560,20 +657,18 @@ function serializeVehicleSubform() {
             });
         }
     });
-    return JSON.stringify(dataArray);
+    return dataArray;
 }
 
 function saveVehicleDetails() {
     const stepIndex = 6;
-    const serializedData = serializeVehicleSubform();
-
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Do_you_own_a_vehicle: formSteps[stepIndex].querySelector("#Do_you_own_a_vehicle").value,
-            Vehicle_details: serializedData
+            Vehicle_details: serializeVehicleSubform()
         }
     };
 
@@ -583,11 +678,9 @@ function saveVehicleDetails() {
         if (response.code == 3000) {
             alert("Vehicle Details Saved");
             vehicleRecordId = response.data.ID;
-            
             const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
             btn.innerText = "Update & Next";
             btn.onclick = updateVehicleDetails;
-            
             steps[stepIndex].classList.add("completed");
             showStep(8);
         }
@@ -616,11 +709,194 @@ function updateVehicleDetails() {
     });
 }
 
+// ======================================
+// CONFIRMATION MODAL LOGIC
+// ======================================
+let currentSubmitAction = '';
+
+function showSubmitModal(action) {
+    currentSubmitAction = action;
+    let modal = document.getElementById("confirmSubmitModal");
+    
+    if (!modal) {
+        // Create full-page modal dynamically
+        modal = document.createElement("div");
+        modal.id = "confirmSubmitModal";
+        modal.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f4f5f7; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                
+                <div style="background: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; box-sizing: border-box;">
+                    
+                    <div style="width: 80px; height: 80px; background: #8b0000; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; margin-bottom: 30px;">
+                        ✓
+                    </div>
+
+                    <h1 style="color: #2b3d63; font-size: 36px; margin-bottom: 20px;">Ready to Submit?</h1>
+                    
+                    <p style="color: #4a5568; font-size: 20px; line-height: 1.6; max-width: 600px; margin-bottom: 50px;">
+                        You are about to finalize and submit all of your personal details, financial information, and attached documents. <br><br>
+                        This action will finalize your record.
+                    </p>
+                    
+                    <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                        <button type="button" onclick="closeSubmitModal()" style="background: transparent; color: #4a5568; border: 2px solid #c5cae4; padding: 15px 40px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 18px; transition: all 0.2s;">
+                            Review
+                        </button>
+                        
+                        <button type="button" onclick="confirmSubmit()" style="background: #8b0000; color: white; border: 2px solid #8b0000; padding: 15px 50px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 18px; transition: all 0.2s;">
+                            Submit
+                        </button>
+                    </div>
+                    
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Disable scrolling on the main page while the full-page modal is open
+    document.body.style.overflow = "hidden";
+    modal.style.display = "block";
+}
+
+function closeSubmitModal() {
+    const modal = document.getElementById("confirmSubmitModal");
+    if (modal) {
+        modal.style.display = "none";
+        // Re-enable scrolling when closed
+        document.body.style.overflow = "auto";
+    }
+}
+
+function confirmSubmit() {
+    closeSubmitModal();
+    // Route to correct function based on what triggered the modal
+    if (currentSubmitAction === 'save') {
+        executeSaveDocumentsDetails();
+    } else if (currentSubmitAction === 'update') {
+        executeUpdateDocumentsDetails();
+    }
+}
 
 // ======================================
 // STEP 8: DOCUMENTS DETAILS
 // ======================================
+
+// Intercept original functions to show the modal first
 function saveDocumentsDetails() {
+    showSubmitModal('save');
+}
+
+function updateDocumentsDetails() {
+    showSubmitModal('update');
+}
+
+const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; box-sizing: border-box;';
+
+function addDocumentRow() {
+    const tbody = document.querySelector("#customSubformTableDOCS tbody");
+    const newRow = document.createElement("tr");
+    newRow.className = "subform-row";
+    newRow.style.borderBottom = "1px solid #edf2f7";
+    newRow.innerHTML = `
+        <td style="padding: 8px 0; text-align: center;">
+            <button type="button" onclick="removeDocumentRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
+        </td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-client" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-document" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-doc-type" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-doc-name" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="file" multiple class="sf-doc-file" style="${inputStyle}" onchange="handleFiles(event, 'typeOne')"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-doc-desc" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="file" multiple class="sf-up-file1" style="${inputStyle}" onchange="handleFiles(event, 'typeTwo')"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-case" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;">
+    <select class="sf-year" style="${inputStyle}">
+        <option value="" disabled selected>- Year -</option>
+        <option value="2023">2023</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+        <option value="2027">2027</option>
+    </select>
+</td>
+        <td style="padding: 8px 0;"><input type="date" class="sf-up-due" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-up-date" placeholder="DD-MMM-YYYY" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-up-by" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-url" placeholder="URL" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-id" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-cpa" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-status" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-priority" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-staff-comm" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-record-id" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-rev-by" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-rev-comm" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="date" class="sf-rev-on" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="text" class="sf-assigned-rev" style="${inputStyle}"></td>
+    `;
+    tbody.appendChild(newRow);
+}
+
+function removeDocumentRow(button) {
+    const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
+    if (rows.length > 1) button.closest("tr").remove();
+}
+
+function getVal(row, selector) {
+    const el = row.querySelector(selector);
+    if (!el) return "";
+    let val = el.value.trim();
+    if (val === "-Select-" || val === "- Year -") return "";
+    return val;
+}
+
+function getFileNames(row, selector) {
+    const fileInput = row.querySelector(selector);
+    if (fileInput && fileInput.files.length > 0) {
+        return JSON.stringify(Array.from(fileInput.files).map(f => f.name));
+    }
+    return "[]";
+}
+
+function serializeDocumentSubform() {
+    const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
+    let dataArray = [];
+
+    rows.forEach((row, index) => {
+        const rawUrl = getVal(row, ".sf-workdrive-url");
+        const urlFieldObj = rawUrl ? JSON.stringify({ "Workdrive_URL": rawUrl, "zcurl": "", "zctarget": "new" }) : JSON.stringify({ "Workdrive_URL": "", "zcurl": "", "zctarget": "new" });
+
+        dataArray.push({
+            "Client": getVal(row, ".sf-client"),
+            "Document": getVal(row, ".sf-document"),
+            "Document_Type": getVal(row, ".sf-doc-type"),
+            "Document_Name": getVal(row, ".sf-doc-name"),
+            "Document_Desciption": getVal(row, ".sf-doc-desc"),
+            "Case": getVal(row, ".sf-case"),
+            "Year_field": getVal(row, ".sf-year"),
+            "Upload_Due_Date": getVal(row, ".sf-up-due"),
+            "Upload_Date": getVal(row, ".sf-up-date"), 
+            "Uploaded_By": getVal(row, ".sf-up-by"),
+            "Workdrive_URL": urlFieldObj,
+            "WorkDrive_File_ID": getVal(row, ".sf-workdrive-id"),
+            "Assigned_CPA": getVal(row, ".sf-cpa"),
+            "Status": getVal(row, ".sf-status"),
+            "Priority": getVal(row, ".sf-priority"),
+            "Staff_Comments": getVal(row, ".sf-staff-comm"),
+            "Record_ID": getVal(row, ".sf-record-id"),
+            "Reviewed_By": getVal(row, ".sf-rev-by"),
+            "Review_Comments": getVal(row, ".sf-rev-comm"),
+            "Reviewed_On": getVal(row, ".sf-rev-on"),
+            "Assigned_Reviewer": getVal(row, ".sf-assigned-rev"),
+            "record::status": "added",
+            "row::key": `t::row_${index + 1}`
+        });
+    });
+    return dataArray;
+}
+
+function executeSaveDocumentsDetails() {
     const stepIndex = 7;
     const formData = {
         data: {
@@ -628,27 +904,37 @@ function saveDocumentsDetails() {
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
-            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value
+            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
+            Documents: serializeDocumentSubform() 
         }
     };
+    
+    console.log("Sending Payload to Zoho:", JSON.stringify(formData, null, 2));
 
     ZOHO.CREATOR.API.addRecord({
-        appName: APP_NAME, formName: "Document_Upload_Wizard", data: formData
-    }).then(function(response) {
+        appName: APP_NAME, 
+        formName: "Document_Upload_Wizard", 
+        data: formData
+    }).then(async function(response) {
+        console.log("Zoho Response:", response);
         if (response.code == 3000) {
-            alert("Documents Saved Successfully!");
+            console.log("Text recorded successfully. Starting file uploads...");
             documentsRecordId = response.data.ID;
+            await uploadAllWizardFiles();
             
+            alert("Documents Saved Successfully!");
             const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
             btn.innerText = "Update Final";
-            btn.onclick = updateDocumentsDetails;
-            
+            btn.onclick = updateDocumentsDetails; // Safe because it maps back to the intercepted trigger
             steps[stepIndex].classList.add("completed");
+        } else {
+            console.error("Save Failed:", response.error);
+            alert("Failed to save documents. Please check the browser console.");
         }
     });
 }
 
-function updateDocumentsDetails() {
+function executeUpdateDocumentsDetails() {
     const stepIndex = 7;
     const formData = {
         data: {
@@ -656,15 +942,101 @@ function updateDocumentsDetails() {
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
-            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value
+            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
+            Documents: serializeDocumentSubform()
         }
     };
 
     ZOHO.CREATOR.API.updateRecord({
-        appName: APP_NAME, reportName: "All_Document_Upload_Wizards", id: documentsRecordId, data: formData
-    }).then(function(response) {
+        appName: APP_NAME, 
+        reportName: "All_Document_Upload_Wizards", 
+        id: documentsRecordId, 
+        data: formData
+    }).then(async function(response) {
         if (response.code == 3000) {
+            await uploadAllWizardFiles();
             alert("Documents Updated Successfully!");
         }
+    });
+}
+
+// =====================================
+// FILE HANDLING LOGIC
+// =====================================
+function handleFiles(event, type) {
+    const files = Array.from(event.target.files);
+    if (type === "typeOne") {
+        fileArrayOne.push(...files);
+        renderFiles(fileArrayOne, "previewDivIdOne", "typeOne");
+    }
+    if (type === "typeTwo") {
+        fileArrayTwo.push(...files);
+        renderFiles(fileArrayTwo, "previewDivIdTwo", "typeTwo");
+    }
+    // event.target.value = ""; 
+}
+
+function renderFiles(files, previewId, type) {
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+    preview.innerHTML = "";
+    files.forEach((file, index) => {
+        preview.innerHTML += `
+            <div class="file-item" style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                <span>${file.name}</span>
+                <button type="button" class="remove-btn" onclick="removeFile('${type}', ${index})" style="color:red; border:none; background:none; cursor:pointer;">
+                    Remove
+                </button>
+            </div>
+        `;
+    });
+}
+
+function removeFile(type, index) {
+    if (type === "typeOne") {
+        fileArrayOne.splice(index, 1);
+        renderFiles(fileArrayOne, "previewDivIdOne", "typeOne");
+    }
+    if (type === "typeTwo") {
+        fileArrayTwo.splice(index, 1);
+        renderFiles(fileArrayTwo, "previewDivIdTwo", "typeTwo");
+    }
+}
+
+async function uploadAllWizardFiles() {
+    if(!documentsRecordId) return;
+    
+    const docFieldLinkName = "Document_File"; 
+    const uploadFieldLinkName = "Upload_File1"; 
+
+    await clearFieldFiles(docFieldLinkName);
+    await clearFieldFiles(uploadFieldLinkName);
+
+    for (let file of fileArrayOne) {
+        await uploadSingleFile(docFieldLinkName, file);
+    }
+    for (let file of fileArrayTwo) {
+        await uploadSingleFile(uploadFieldLinkName, file);
+    }
+}
+
+function uploadSingleFile(fieldName, file) {
+    return ZOHO.CREATOR.API.uploadFile({
+        appName: APP_NAME,
+        reportName: "All_Document_Upload_Wizards",
+        id: documentsRecordId,
+        fieldName: fieldName,
+        file: file
+    });
+}
+
+function clearFieldFiles(fieldName) {
+    let emptyData = { data: {} };
+    emptyData.data[fieldName] = [];
+    return ZOHO.CREATOR.API.updateRecord({
+        appName: APP_NAME,
+        reportName: "All_Document_Upload_Wizards",
+        id: documentsRecordId,
+        data: emptyData
     });
 }
