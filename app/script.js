@@ -819,9 +819,9 @@ function addDocumentRow() {
         <td style="padding: 8px 0;"><input type="text" class="sf-document" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-type" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-name" style="${inputStyle}"></td>
-        <td style="padding: 8px 0;"><input type="file" class="sf-doc-file" style="${inputStyle}" onchange="handleRowFile(this, 'typeOne')"></td>
+        <td style="padding: 8px 0;"><input type="file" multiple class="sf-doc-file" style="${inputStyle}" onchange="handleRowFile(this, 'typeOne')"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-desc" style="${inputStyle}"></td>
-        <td style="padding: 8px 0;"><input type="file" class="sf-up-file1" style="${inputStyle}" onchange="handleRowFile(this, 'typeTwo')"></td>
+        <td style="padding: 8px 0;"><input type="file" multiple class="sf-up-file1" style="${inputStyle}" onchange="handleRowFile(this, 'typeTwo')"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-case" style="${inputStyle}"></td>
         <td style="padding: 8px 0;">
             <select class="sf-year" style="${inputStyle}">
@@ -866,7 +866,7 @@ function handleRowFile(inputElement, type) {
     const rowId = row.getAttribute("data-ui-row-id");
     
     if (inputElement.files.length > 0) {
-        subformFileTracker[rowId][type] = inputElement.files[0];
+       subformFileTracker[rowId][type] = Array.from(inputElement.files);
     } else {
         subformFileTracker[rowId][type] = null;
     }
@@ -891,7 +891,10 @@ function serializeDocumentSubform() {
         const rawUrl = getVal(row, ".sf-workdrive-url");
         const urlFieldObj = rawUrl ? JSON.stringify({ "Workdrive_URL": rawUrl, "zcurl": "", "zctarget": "new" }) : JSON.stringify({ "Workdrive_URL": "", "zcurl": "", "zctarget": "new" });
 
-        dataArray.push({
+        // Check if this row already exists in Zoho
+        const zohoRowId = row.getAttribute("data-zoho-row-id");
+        
+        let rowPayload = {
             "Client": getVal(row, ".sf-client"),
             "Document": getVal(row, ".sf-document"),
             "Document_Type": getVal(row, ".sf-doc-type"),
@@ -912,14 +915,23 @@ function serializeDocumentSubform() {
             "Reviewed_By": getVal(row, ".sf-rev-by"),
             "Review_Comments": getVal(row, ".sf-rev-comm"),
             "Reviewed_On": getVal(row, ".sf-rev-on"),
-            "Assigned_Reviewer": getVal(row, ".sf-assigned-rev"),
-            "record::status": "added",
-            "row::key": `t::row_${index + 1}`
-        });
+            "Assigned_Reviewer": getVal(row, ".sf-assigned-rev")
+        };
+
+        if (zohoRowId) {
+            // It's an existing row
+            rowPayload["id"] = zohoRowId;
+            rowPayload["record::status"] = "updated";
+        } else {
+            // It's a new row being added
+            rowPayload["record::status"] = "added";
+            rowPayload["row::key"] = `t::row_${index + 1}`;
+        }
+
+        dataArray.push(rowPayload);
     });
     return dataArray;
 }
-
 // =====================================
 // SAVE & UPLOAD EXECUTION
 // =====================================
@@ -974,24 +986,84 @@ function executeSaveDocumentsDetails() {
         }
     });
 }
+function executeUpdateDocumentsDetails() {
+    const stepIndex = 7;
+    const formData = {
+        data: {
+            Clients: formSteps[stepIndex].querySelector("#Clients").value,
+            Case: formSteps[stepIndex].querySelector("#Case").value,
+            A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
+            Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
+            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
+            Documents: serializeDocumentSubform() 
+        }
+    };
+
+    ZOHO.CREATOR.API.updateRecord({
+        appName: APP_NAME, 
+        reportName: "All_Document_Upload_Wizards", 
+        id: documentsRecordId,
+        data: formData
+    }).then(async function(response) {
+        if (response.code == 3000) {
+            console.log("Parent Record Updated.");
+
+            try {
+                // Re-fetch the record to get IDs for any newly added rows
+                const recordDetails = await ZOHO.CREATOR.API.getRecordById({
+                    appName: APP_NAME,
+                    reportName: "All_Document_Upload_Wizards", 
+                    id: documentsRecordId
+                });
+                
+                const subformRows = recordDetails.data.Documents; 
+                
+                // Trigger the upload process
+                await uploadAllWizardFiles(subformRows);
+
+                alert("Documents & Files Updated Successfully!");
+            } catch (error) {
+                console.error("Failed to fetch subform rows or upload files:", error);
+                alert("Text updated, but file uploads failed. Check console.");
+            }
+        } else {
+            console.error("Update Failed:", response.error);
+            alert("Failed to update documents.");
+        }
+    });
+}
 
 async function uploadAllWizardFiles(savedZohoRows) {
     const uiRows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
 
-    // Loop through the rows in the UI and match them to the rows returned from Zoho
     for (let i = 0; i < uiRows.length; i++) {
         let uiRowId = uiRows[i].getAttribute("data-ui-row-id");
         let filesToUpload = subformFileTracker[uiRowId];
         
-        // Match the UI row index to the saved Zoho row index
-        if (savedZohoRows[i] && filesToUpload) {
-            let zohoSubformRowId = savedZohoRows[i].ID;
-            console.log(zohoSubformRowId);
-            if (filesToUpload.typeOne) {
-                await uploadSingleFile("Document_File", filesToUpload.typeOne, zohoSubformRowId);
+        // See if we already stored the Zoho ID, otherwise pull it from the fresh response
+        let zohoSubformRowId = uiRows[i].getAttribute("data-zoho-row-id");
+        
+        if (!zohoSubformRowId && savedZohoRows[i]) {
+            zohoSubformRowId = savedZohoRows[i].ID;
+            // Store it in the DOM for future updates
+            uiRows[i].setAttribute("data-zoho-row-id", zohoSubformRowId); 
+        }
+
+        if (zohoSubformRowId && filesToUpload) {
+            // Loop and upload all files for typeOne (sf-doc-file)
+            if (filesToUpload.typeOne && filesToUpload.typeOne.length > 0) {
+                for (let file of filesToUpload.typeOne) {
+                    await uploadSingleFile("Document_File", file, zohoSubformRowId);
+                }
+                filesToUpload.typeOne = null; // Clear from memory to prevent re-upload
             }
-            if (filesToUpload.typeTwo) {
-                await uploadSingleFile("Upload_File1", filesToUpload.typeTwo, zohoSubformRowId);
+            
+            // Loop and upload all files for typeTwo (sf-up-file1)
+            if (filesToUpload.typeTwo && filesToUpload.typeTwo.length > 0) {
+                for (let file of filesToUpload.typeTwo) {
+                    await uploadSingleFile("Upload_File1", file, zohoSubformRowId);
+                }
+                filesToUpload.typeTwo = null; // Clear from memory to prevent re-upload
             }
         }
     }
