@@ -790,13 +790,26 @@ function saveDocumentsDetails() {
 function updateDocumentsDetails() {
     showSubmitModal('update');
 }
-
+// =====================================
+// ROW GENERATION & FILE TRACKING
+// =====================================
 const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; box-sizing: border-box;';
+
+// Global object to track files by their unique row ID
+let subformFileTracker = {};
 
 function addDocumentRow() {
     const tbody = document.querySelector("#customSubformTableDOCS tbody");
     const newRow = document.createElement("tr");
     newRow.className = "subform-row";
+    
+    // 1. Generate a unique ID for this UI row
+    const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    newRow.setAttribute("data-ui-row-id", rowId);
+    
+    // 2. Initialize tracking for this row
+    subformFileTracker[rowId] = { typeOne: null, typeTwo: null };
+
     newRow.style.borderBottom = "1px solid #edf2f7";
     newRow.innerHTML = `
         <td style="padding: 8px 0; text-align: center;">
@@ -806,20 +819,20 @@ function addDocumentRow() {
         <td style="padding: 8px 0;"><input type="text" class="sf-document" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-type" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-name" style="${inputStyle}"></td>
-        <td style="padding: 8px 0;"><input type="file" multiple class="sf-doc-file" style="${inputStyle}" onchange="handleFiles(event, 'typeOne')"></td>
+        <td style="padding: 8px 0;"><input type="file" class="sf-doc-file" style="${inputStyle}" onchange="handleRowFile(this, 'typeOne')"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-desc" style="${inputStyle}"></td>
-        <td style="padding: 8px 0;"><input type="file" multiple class="sf-up-file1" style="${inputStyle}" onchange="handleFiles(event, 'typeTwo')"></td>
+        <td style="padding: 8px 0;"><input type="file" class="sf-up-file1" style="${inputStyle}" onchange="handleRowFile(this, 'typeTwo')"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-case" style="${inputStyle}"></td>
         <td style="padding: 8px 0;">
-    <select class="sf-year" style="${inputStyle}">
-        <option value="" disabled selected>- Year -</option>
-        <option value="2023">2023</option>
-        <option value="2024">2024</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-        <option value="2027">2027</option>
-    </select>
-</td>
+            <select class="sf-year" style="${inputStyle}">
+                <option value="" disabled selected>- Year -</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+            </select>
+        </td>
         <td style="padding: 8px 0;"><input type="date" class="sf-up-due" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-up-date" placeholder="DD-MMM-YYYY" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-up-by" style="${inputStyle}"></td>
@@ -840,23 +853,34 @@ function addDocumentRow() {
 
 function removeDocumentRow(button) {
     const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
-    if (rows.length > 1) button.closest("tr").remove();
+    if (rows.length > 1) {
+        const row = button.closest("tr");
+        const rowId = row.getAttribute("data-ui-row-id");
+        delete subformFileTracker[rowId]; // Clean up memory
+        row.remove();
+    }
 }
 
+function handleRowFile(inputElement, type) {
+    const row = inputElement.closest("tr");
+    const rowId = row.getAttribute("data-ui-row-id");
+    
+    if (inputElement.files.length > 0) {
+        subformFileTracker[rowId][type] = inputElement.files[0];
+    } else {
+        subformFileTracker[rowId][type] = null;
+    }
+}
+
+// =====================================
+// DATA SERIALIZATION
+// =====================================
 function getVal(row, selector) {
     const el = row.querySelector(selector);
     if (!el) return "";
     let val = el.value.trim();
     if (val === "-Select-" || val === "- Year -") return "";
     return val;
-}
-
-function getFileNames(row, selector) {
-    const fileInput = row.querySelector(selector);
-    if (fileInput && fileInput.files.length > 0) {
-        return JSON.stringify(Array.from(fileInput.files).map(f => f.name));
-    }
-    return "[]";
 }
 
 function serializeDocumentSubform() {
@@ -896,6 +920,9 @@ function serializeDocumentSubform() {
     return dataArray;
 }
 
+// =====================================
+// SAVE & UPLOAD EXECUTION
+// =====================================
 function executeSaveDocumentsDetails() {
     const stepIndex = 7;
     const formData = {
@@ -908,135 +935,76 @@ function executeSaveDocumentsDetails() {
             Documents: serializeDocumentSubform() 
         }
     };
-    
-    console.log("Sending Payload to Zoho:", JSON.stringify(formData, null, 2));
 
     ZOHO.CREATOR.API.addRecord({
         appName: APP_NAME, 
         formName: "Document_Upload_Wizard", 
         data: formData
     }).then(async function(response) {
-        console.log("Zoho Response:", response);
         if (response.code == 3000) {
-            console.log("Text recorded successfully. Starting file uploads...");
             documentsRecordId = response.data.ID;
-            await uploadAllWizardFiles();
-            
-            alert("Documents Saved Successfully!");
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
-            btn.innerText = "Update Final";
-            btn.onclick = updateDocumentsDetails; // Safe because it maps back to the intercepted trigger
-            steps[stepIndex].classList.add("completed");
+            console.log("Parent Record Created. ID:", documentsRecordId);
+
+            try {
+                // Fetch the newly created record to get Subform Row IDs
+                const recordDetails = await ZOHO.CREATOR.API.getRecordById({
+                    appName: APP_NAME,
+                    reportName: "All_Document_Upload_Wizards", 
+                    id: documentsRecordId
+                });
+                    console.log(recordDetails);
+                const subformRows = recordDetails.data.Documents; 
+                
+                // Trigger the upload process, passing the fetched rows
+                await uploadAllWizardFiles(subformRows);
+
+                alert("Documents & Files Saved Successfully!");
+                const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+                btn.innerText = "Update Final";
+                btn.onclick = updateDocumentsDetails; 
+                steps[stepIndex].classList.add("completed");
+
+            } catch (error) {
+                console.error("Failed to fetch subform rows or upload files:", error);
+                alert("Text saved, but file uploads failed. Check console.");
+            }
         } else {
             console.error("Save Failed:", response.error);
-            alert("Failed to save documents. Please check the browser console.");
+            alert("Failed to save documents.");
         }
     });
 }
 
-function executeUpdateDocumentsDetails() {
-    const stepIndex = 7;
-    const formData = {
-        data: {
-            Clients: formSteps[stepIndex].querySelector("#Clients").value,
-            Case: formSteps[stepIndex].querySelector("#Case").value,
-            A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
-            Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
-            Documents: serializeDocumentSubform()
+async function uploadAllWizardFiles(savedZohoRows) {
+    const uiRows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
+
+    // Loop through the rows in the UI and match them to the rows returned from Zoho
+    for (let i = 0; i < uiRows.length; i++) {
+        let uiRowId = uiRows[i].getAttribute("data-ui-row-id");
+        let filesToUpload = subformFileTracker[uiRowId];
+        
+        // Match the UI row index to the saved Zoho row index
+        if (savedZohoRows[i] && filesToUpload) {
+            let zohoSubformRowId = savedZohoRows[i].ID;
+            console.log(zohoSubformRowId);
+            if (filesToUpload.typeOne) {
+                await uploadSingleFile("Document_File", filesToUpload.typeOne, zohoSubformRowId);
+            }
+            if (filesToUpload.typeTwo) {
+                await uploadSingleFile("Upload_File1", filesToUpload.typeTwo, zohoSubformRowId);
+            }
         }
-    };
-
-    ZOHO.CREATOR.API.updateRecord({
-        appName: APP_NAME, 
-        reportName: "All_Document_Upload_Wizards", 
-        id: documentsRecordId, 
-        data: formData
-    }).then(async function(response) {
-        if (response.code == 3000) {
-            await uploadAllWizardFiles();
-            alert("Documents Updated Successfully!");
-        }
-    });
-}
-
-// =====================================
-// FILE HANDLING LOGIC
-// =====================================
-function handleFiles(event, type) {
-    const files = Array.from(event.target.files);
-    if (type === "typeOne") {
-        fileArrayOne.push(...files);
-        renderFiles(fileArrayOne, "previewDivIdOne", "typeOne");
-    }
-    if (type === "typeTwo") {
-        fileArrayTwo.push(...files);
-        renderFiles(fileArrayTwo, "previewDivIdTwo", "typeTwo");
-    }
-    // event.target.value = ""; 
-}
-
-function renderFiles(files, previewId, type) {
-    const preview = document.getElementById(previewId);
-    if (!preview) return;
-    preview.innerHTML = "";
-    files.forEach((file, index) => {
-        preview.innerHTML += `
-            <div class="file-item" style="display:flex; justify-content:space-between; margin-bottom: 5px;">
-                <span>${file.name}</span>
-                <button type="button" class="remove-btn" onclick="removeFile('${type}', ${index})" style="color:red; border:none; background:none; cursor:pointer;">
-                    Remove
-                </button>
-            </div>
-        `;
-    });
-}
-
-function removeFile(type, index) {
-    if (type === "typeOne") {
-        fileArrayOne.splice(index, 1);
-        renderFiles(fileArrayOne, "previewDivIdOne", "typeOne");
-    }
-    if (type === "typeTwo") {
-        fileArrayTwo.splice(index, 1);
-        renderFiles(fileArrayTwo, "previewDivIdTwo", "typeTwo");
     }
 }
 
-async function uploadAllWizardFiles() {
-    if(!documentsRecordId) return;
-    
-    const docFieldLinkName = "Document_File"; 
-    const uploadFieldLinkName = "Upload_File1"; 
-
-    await clearFieldFiles(docFieldLinkName);
-    await clearFieldFiles(uploadFieldLinkName);
-
-    for (let file of fileArrayOne) {
-        await uploadSingleFile(docFieldLinkName, file);
-    }
-    for (let file of fileArrayTwo) {
-        await uploadSingleFile(uploadFieldLinkName, file);
-    }
-}
-
-function uploadSingleFile(fieldName, file) {
+function uploadSingleFile(fieldName, file, subformRowId) {
+    // The ID provided here is now properly the SUBFORM row ID, and syntax is fixed
     return ZOHO.CREATOR.API.uploadFile({
         appName: APP_NAME,
         reportName: "All_Document_Upload_Wizards",
-        id: documentsRecordId,
-        fieldName: fieldName,
+        id: subformRowId, 
+        parentId:documentsRecordId,
+        fieldName: "Documents." +fieldName,
         file: file
-    });
-}
-
-function clearFieldFiles(fieldName) {
-    let emptyData = { data: {} };
-    emptyData.data[fieldName] = [];
-    return ZOHO.CREATOR.API.updateRecord({
-        appName: APP_NAME,
-        reportName: "All_Document_Upload_Wizards",
-        id: documentsRecordId,
-        data: emptyData
     });
 }
