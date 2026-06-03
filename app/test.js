@@ -1,1045 +1,1332 @@
-const APP_NAME = "ashirwad";
+// =====================================================
+// ZOHO CREATOR WIDGET — CPA Hopkins
+// =====================================================
 
-let currentStep = 1;
+// =====================================================
+// MASTER RECORD ID
+// =====================================================
 
+const MASTER_RECORD_ID = "428295000000283017";
 
+// =====================================================
+// APP CONFIG
+// =====================================================
 
+const APP_NAME = "cpa-hopkins";
 
+const REPORTS = {
+    MASTER:     "Personal_Tax_Prep_Intake",
+    BASIC_INFO: "Personal_Basic_Information_Report",
+    TAXPAYER:   "All_Person_Taxpayer_S_Information",
+    SPOUSE:     "All_Personal_Spouse_Infos",
+    DEPENDENT:  "Personal_Dependent_Report",
+    DEP_CHILD:  "Personal_Dependent_Report",
+    DOCUMENT:   "All_Document_Upload_Wizards",
+    DOC_CENTER: "Document_Review"
+};
 
+const FORMS = {
+    BASIC_INFO: "Personal_Basic_Information",
+    TAXPAYER:   "Person_Taxpayer_s_Information",
+    SPOUSE:     "Personal_Spouse_Information",
+    DEPENDENT:  "Personal_Dependent",
+    DEP_CHILD:  "Personal_Dependent",
+    DOC_WIZARD: "Document_Upload_Wizard",
+    DOC_UPLOAD: "Document_Upload_Center"
 
+};
 
-const formSteps = document.querySelectorAll(".form-step");
-const steps = document.querySelectorAll(".step");
-
-
-// ======================================
+// =====================================================
 // RECORD IDS
-// ======================================
+// =====================================================
 
-let basicRecordId = null;
-let educationRecordId = null;
+let basicInfoRecordId = "";
+let taxpayerRecordId  = "";
+let spouseRecordId    = "";
+let dependRecordId    = "";
+let documentRecordId  = "";
 
+let docCenterRows = [];
+let depChildRows  = [];
 
-// ======================================
-// INIT
-// ======================================
+// =====================================================
+// HELPERS
+// =====================================================
 
-ZOHO.CREATOR.init().then(function () {
+function extractData(response) {
+    const raw = response.data;
+    if (Array.isArray(raw)) return raw[0] || {};
+    return raw || {};
+}
 
-    console.log("Widget Initialized");
+function setField(selector, value) {
+    const el = document.querySelector(selector);
+    if (el) el.value = value || "";
+}
 
-});
+function getField(selector) {
+    const el = document.querySelector(selector);
+    return el ? (el.value || "") : "";
+}
 
+function zohoDateToInput(zohoDate) {
+    if (!zohoDate) return "";
+    const parsed = new Date(zohoDate);
+    if (isNaN(parsed)) return "";
+    return parsed.toISOString().split("T")[0];
+}
 
-// ======================================
-// SHOW STEP
-// ======================================
+function inputDateToZoho(inputDate) {
+    if (!inputDate) return "";
+    const parsed = new Date(inputDate);
+    if (isNaN(parsed)) return "";
+    return parsed.toLocaleDateString("en-GB", {
+        day:   "2-digit",
+        month: "short",
+        year:  "numeric"
+    }).replace(/ /g, "-");
+}
 
-function showStep(step){
+function assertSuccess(response, label) {
+    if (!response || response.code !== 3000) {
+        const err = response && response.error;
+        let msgParts = [];
 
-    formSteps.forEach((form)=>{
-        form.classList.remove("active");
+        if (Array.isArray(err)) {
+            msgParts = err;
+        } else if (typeof err === "string") {
+            msgParts = [err];
+        } else if (err && typeof err === "object") {
+            // common Zoho patterns: {"field": ["msg"]} or {"field":"msg"}
+            msgParts = Object.values(err).flatMap(function (v) {
+                if (Array.isArray(v)) return v;
+                if (typeof v === "string") return [v];
+                return [];
+            });
+        }
+
+        const msg = (msgParts.length ? msgParts.join(", ") : "") ||
+                    (response && response.message) ||
+                    (label + " failed");
+
+        const code = response ? response.code : "unknown";
+        throw new Error(label + " — " + msg + " (code " + code + ")");
+    }
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g,  "&amp;")
+        .replace(/"/g,  "&quot;")
+        .replace(/</g,  "&lt;")
+        .replace(/>/g,  "&gt;");
+}
+
+// =====================================================
+// STEP LOGIC
+// (runs after DOM is ready — called from initApp)
+// =====================================================
+
+let currentStep = 0;
+let steps, formSteps, nextBtn, prevBtn, submitBtn, saveBtn;
+
+function initStepUI() {
+
+    steps     = document.querySelectorAll(".step");
+    formSteps = document.querySelectorAll(".form-step");
+    nextBtn   = document.getElementById("nextBtn");
+    prevBtn   = document.getElementById("prevBtn");
+    submitBtn = document.getElementById("submitBtn");
+
+    // Inject Save button
+    saveBtn           = document.createElement("button");
+    saveBtn.type      = "button";
+    saveBtn.innerText = "Save";
+    saveBtn.className = "btn-submit";
+    document.querySelector(".form-actions").prepend(saveBtn);
+
+    // Nav button events
+    nextBtn.addEventListener("click", function () {
+        if (currentStep < formSteps.length - 1) {
+            currentStep++;
+            updateStepUI();
+        }
     });
 
-    steps.forEach((item)=>{
-        item.classList.remove("active");
+    prevBtn.addEventListener("click", function () {
+        if (currentStep > 0) {
+            currentStep--;
+            updateStepUI();
+        }
     });
 
-    formSteps[step - 1].classList.add("active");
-
-    steps[step - 1].classList.add("active");
-
-    currentStep = step;
-}
-
-
-// ======================================
-// STEP CLICK
-// ======================================
-
-function goToStep(step){
-
-    // STEP 1
-
-    if(step == 1){
-
-        showStep(1);
-
-    }
-
-    // STEP 2
-
-    else if(step == 2){
-
-        if(basicRecordId){
-
-            showStep(2);
-
-        }
-        else{
-
-            alert("Please complete Basic Details first");
-
-        }
-
-    }
-
-    // STEP 3
-
-    else if(step == 3){
-
-        if(educationRecordId){
-
-            showStep(3);
-
-        }
-        else{
-
-            alert("Please complete Education Details first");
-
-        }
-
-    }
-
-    // STEP 4
-
-    else if(step == 4){
-
-        if(documentRecordId){
-
-            showStep(4);
-
-        }
-        else{
-
-            alert("Please upload documents first");
-
-        }
-
-    }
-
-}
-
-// ======================================
-// BACK BUTTON
-// ======================================
-
-function prevStep(step){
-
-    showStep(step);
-
-    // BACK TO BASIC DETAILS
-
-    if(step == 1){
-
-        getBasicRecord();
-
-    }
-
-}
-
-
-// ======================================
-// SAVE BASIC DETAILS
-// ======================================
-
-function saveBasicDetails(){
-
-    const name = document.getElementById("name").value;
-
-    const role = document.getElementById("role").value;
-
-    const phone = document.getElementById("phone").value;
-
-
-
-    // VALIDATION
-
-    if(name == "" || role == "" || phone == ""){
-
-        alert("Please fill all fields");
-
-        return;
-
-    }
-
-
-
-    const formData = {
-
-        data:{
-
-            Name:name,
-
-            Roll:role,
-
-            Phone_no:phone
-
-        }
-
-    };
-
-
-
-    // CREATE RECORD
-
-    ZOHO.CREATOR.API.addRecord({
-
-        appName:APP_NAME,
-
-        formName:"Basic_Details",
-
-        data:formData
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            alert("Basic Details Saved");
-
-
-
-            // SAVE RECORD ID
-
-            basicRecordId = response.data.ID;
-
-
-
-            console.log("Basic Record ID :", basicRecordId);
-
-
-
-            // CHANGE BUTTON
-
-            document.getElementById("basicBtn").innerText =
-            "Update & Next";
-
-
-
-            // CHANGE BUTTON FUNCTION
-
-            document.getElementById("basicBtn").onclick =
-            updateBasicDetails;
-
-
-
-            // COMPLETE STEP
-
-            steps[0].classList.add("completed");
-
-
-
-            // NEXT STEP
-
-            showStep(2);
-
-        }
-
+    steps.forEach(function (step) {
+        step.addEventListener("click", function () {
+            currentStep = parseInt(step.dataset.step);
+            updateStepUI();
+        });
     });
 
-}
-
-
-// ======================================
-// GET BASIC RECORD
-// ======================================
-
-function getBasicRecord(){
-
-    if(!basicRecordId){
-
-        return;
-
+    // Add Dependent row button
+    const addDepBtn = document.getElementById("addDependentBtn");
+    if (addDepBtn) {
+        addDepBtn.addEventListener("click", function () {
+            depChildRows.push({
+                ID: null, isNew: true,
+                First_Name: "", Last_Name: "",
+                Relationship: "", Date_of_Birth: "", SSN: ""
+            });
+            renderDependentRows();
+        });
     }
 
-    ZOHO.CREATOR.API.getRecordById({
+    // Add Document row button
+    const addDocBtn = document.getElementById("addDocBtn");
+    if (addDocBtn) {
+        addDocBtn.addEventListener("click", function () {
+            docCenterRows.push({
+                isNew: true, ID: null,
+                Document_Name: "", Document_Type: "",
+                Document_File: "", Document_Desciption: "",
+                Upload_Due_Date: "", Status: ""
+            });
+            renderDocumentRows();
+        });
+    }
 
-        appName:APP_NAME,
-
-        reportName:"Basic_Details_Report",
-
-        id:basicRecordId
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            // FILL INPUTS
-
-            document.getElementById("name").value =
-            response.data.Name || "";
-
-            document.getElementById("role").value =
-            response.data.Roll || "";
-
-            document.getElementById("phone").value =
-            response.data.Phone_no || "";
-
-
-
-            // BUTTON TEXT
-
-            document.getElementById("basicBtn").innerText =
-            "Update & Next";
-
-
-
-            // BUTTON FUNCTION
-
-            document.getElementById("basicBtn").onclick =
-            updateBasicDetails;
-
+    // Save button handler
+    saveBtn.addEventListener("click", async function () {
+        saveBtn.disabled  = true;
+        saveBtn.innerText = "Saving...";
+        try {
+            await saveBasicInfo();
+            await saveTaxpayer();
+            await saveSpouse();
+            await saveDependent();
+            alert("Saved Successfully");
+        } catch (err) {
+            console.error("❌ SAVE ERROR", err);
+            alert("Save Failed: " + err.message);
+        } finally {
+            saveBtn.disabled  = false;
+            saveBtn.innerText = "Save";
         }
-
     });
 
-}
-
-
-// ======================================
-// UPDATE BASIC DETAILS
-// ======================================
-
-function updateBasicDetails(){
-
-    const name = document.getElementById("name").value;
-
-    const role = document.getElementById("role").value;
-
-    const phone = document.getElementById("phone").value;
-
-
-
-    if(name == "" || role == "" || phone == ""){
-
-        alert("Please fill all fields");
-
-        return;
-
-    }
-
-
-
-    const formData = {
-
-        data:{
-
-            Name:name,
-
-            Roll:role,
-
-            Phone_no:phone
-
+    // Submit handler
+    document.getElementById("multiStepForm")
+    .addEventListener("submit", async function (e) {
+        e.preventDefault();
+        submitBtn.disabled  = true;
+        submitBtn.innerText = "Submitting...";
+        try {
+            await saveBasicInfo();
+            await saveTaxpayer();
+            await saveSpouse();
+            await saveDependent();
+            alert("Form Submitted Successfully");
+        } catch (err) {
+            console.error("❌ SUBMIT ERROR", err);
+            alert("Submit Failed: " + err.message);
+        } finally {
+            submitBtn.disabled  = false;
+            submitBtn.innerText = "Submit";
         }
-
-    };
-
-
-
-    ZOHO.CREATOR.API.updateRecord({
-
-        appName:APP_NAME,
-
-        reportName:"Basic_Details_Report",
-
-        id:basicRecordId,
-
-        data:formData
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            alert("Basic Details Updated");
-
-            showStep(2);
-
-        }
-
     });
 
+    updateStepUI();
 }
 
-
-
-// ======================================
-// SAVE EDUCATION DETAILS
-// ======================================
-
-function saveEducationDetails(){
-
-    const college = document.getElementById("college").value;
-
-    const degree = document.getElementById("degree").value;
-
-    const year = document.getElementById("year").value;
-
-
-
-    // VALIDATION
-
-    if(college == "" || degree == "" || year == ""){
-
-        alert("Please fill all fields");
-
-        return;
-
+function updateStepUI() {
+    steps.forEach(function (step, index) {
+        if (index <= currentStep) step.classList.add("active");
+        else step.classList.remove("active");
+    });
+    formSteps.forEach(function (form, index) {
+        if (index === currentStep) form.classList.add("active");
+        else form.classList.remove("active");
+    });
+    prevBtn.style.display = currentStep === 0 ? "none" : "inline-block";
+    if (currentStep === formSteps.length - 1) {
+        nextBtn.style.display   = "none";
+        submitBtn.style.display = "inline-block";
+    } else {
+        nextBtn.style.display   = "inline-block";
+        submitBtn.style.display = "none";
     }
+}
 
+// =====================================================
+// MAIN ENTRY POINT
+// Called by ZOHO.CREATOR.init() success handler
+// =====================================================
 
+async function initApp() {
 
-    const formData = {
+    console.log("✅ ZOHO INIT SUCCESS — starting app");
 
-        data:{
+    initStepUI();
 
-            Collage_Name:college,
+    await fetchMasterRecord();
 
-            Degree:degree,
+    await ensureBasicInfoRecord();
+    await ensureTaxpayerRecord();
+    await ensureSpouseRecord();
+    await ensureDependentRecord();
+    await ensureDocumentWizardRecord();
 
-            Passing_Year:year
+    await loadBasicInfo();
+    await loadTaxpayer();
+    await loadSpouse();
+    await loadDependent();
+    await loadDocuments();
+}
 
-        }
+// =====================================================
+// ZOHO INIT
+// =====================================================
 
-    };
+// ⚠️  ZOHO.CREATOR.init() MUST be called at the
+//     top level of the script (outside any event
+//     listener) and MUST NOT be wrapped in
+//     DOMContentLoaded. The Zoho SDK handles its
+//     own timing. Wrapping it causes
+//     "Invalid Configuration" errors.
 
-
-
-    // CREATE RECORD
-
-    ZOHO.CREATOR.API.addRecord({
-
-        appName:APP_NAME,
-
-        formName:"Education_Details",
-
-        data:formData
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            alert("Education Details Saved");
-
-
-
-            // SAVE RECORD ID
-
-            educationRecordId = response.data.ID;
-
-
-
-            // CHANGE BUTTON TEXT
-
-            document.getElementById("educationBtn").innerText =
-            "Update & Next";
-
-
-
-            // CHANGE BUTTON FUNCTION
-
-            document.getElementById("educationBtn").onclick =
-            updateEducationDetails;
-
-
-
-            // COMPLETE STEP
-
-            steps[1].classList.add("completed");
-
-
-
-            // OPEN STEP 3
-
-            showStep(3);
-
-        }
-
+ZOHO.CREATOR.init()
+    .then(function () {
+        initApp().catch(function (err) {
+            console.error("❌ initApp ERROR", err);
+        });
+    })
+    .catch(function (err) {
+        console.error("❌ ZOHO INIT ERROR", err);
+        alert("Zoho init failed: " + err.message);
     });
 
-}
+// =====================================================
+// ENSURE RECORD EXISTS — create + link to master
+// =====================================================
 
+async function ensureRecordOrCreate({
+    reportName,
+    formName,
+    currentId,
+    createPayload,
+    onCreatedId,
+    masterLookupField
+}) {
+    if (currentId) return currentId;
 
+    const payload = createPayload ? createPayload() : {};
 
-// ======================================
-// GET EDUCATION RECORD
-// ======================================
-
-function getEducationRecord(){
-
-    if(!educationRecordId){
-
-        return;
-
+    let response;
+    try {
+        response = await ZOHO.CREATOR.API.addRecord({
+            appName:  APP_NAME,
+            formName: formName,
+            data:     { data: payload }
+        });
+    } catch (sdkErr) {
+        console.warn("formName failed, trying reportName", sdkErr);
+        response = await ZOHO.CREATOR.API.addRecord({
+            appName:    APP_NAME,
+            reportName: reportName,
+            data:       { data: payload }
+        });
     }
 
-    ZOHO.CREATOR.API.getRecordById({
+    assertSuccess(response, "Ensure create — " + formName);
 
-        appName:APP_NAME,
+    const createdId = response.data?.ID || "";
+    if (!createdId) throw new Error("Ensure create returned empty ID for " + formName);
 
-        reportName:"Education_Details_Report",
+    onCreatedId(createdId);
 
-        id:educationRecordId
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            // FILL INPUTS
-
-            document.getElementById("college").value =
-            response.data.Collage_Name || "";
-
-            document.getElementById("degree").value =
-            response.data.Degree || "";
-
-            document.getElementById("year").value =
-            response.data.Passing_Year || "";
-
-
-
-            // BUTTON TEXT
-
-            document.getElementById("educationBtn").innerText =
-            "Update";
-
-
-
-            // BUTTON FUNCTION
-
-            document.getElementById("educationBtn").onclick =
-            updateEducationDetails;
-
-        }
-
+    await ZOHO.CREATOR.API.updateRecord({
+        appName:    APP_NAME,
+        reportName: REPORTS.MASTER,
+        id:         MASTER_RECORD_ID,
+        data:       { data: { [masterLookupField]: createdId } }
     });
 
+    return createdId;
 }
 
-
-
-
-
-// ======================================
-// UPDATE EDUCATION DETAILS
-// ======================================
-function updateEducationDetails(){
-
-    const college = document.getElementById("college").value;
-
-    const degree = document.getElementById("degree").value;
-
-    const year = document.getElementById("year").value;
-
-
-
-    if(college == "" || degree == "" || year == ""){
-
-        alert("Please fill all fields");
-
-        return;
-
-    }
-
-
-
-    const formData = {
-
-        data:{
-
-            Collage_Name:college,
-
-            Degree:degree,
-
-            Passing_Year:year
-
-        }
-
-    };
-
-
-
-    ZOHO.CREATOR.API.updateRecord({
-
-        appName:APP_NAME,
-
-        reportName:"Education_Details_Report",
-
-        id:educationRecordId,
-
-        data:formData
-
-    }).then(function(response){
-
-        console.log(response);
-
-        if(response.code == 3000){
-
-            alert("Education Details Updated");
-
-
-
-            // OPEN STEP 3
-
-            showStep(3);
-
-        }
-
+async function ensureBasicInfoRecord() {
+    return ensureRecordOrCreate({
+        reportName:        REPORTS.BASIC_INFO,
+        formName:          FORMS.BASIC_INFO,
+        currentId:         basicInfoRecordId,
+        createPayload:     () => ({ Filling_Status: "", Tax_Year: "" }),
+        onCreatedId:       (id) => { basicInfoRecordId = id; },
+        masterLookupField: "Personal_Basic_Information"
     });
-
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// =====================================
-// DOCUMENT RECORD ID
-// =====================================
-
-let documentRecordId = null;
-
-
-// =====================================
-// FILE ARRAYS
-// =====================================
-
-let resumeFiles = [];
-
-let tenthFiles = [];
-
-let twelfthFiles = [];
-
-
-// =====================================
-// HANDLE FILES
-// =====================================
-
-function handleFiles(event,type){
-
-    const files = Array.from(event.target.files);
-
-    // RESUME
-
-    if(type == "resume"){
-
-        resumeFiles.push(...files);
-
-        renderFiles(
-            resumeFiles,
-            "resumePreview",
-            "resume"
-        );
-
-    }
-
-    // 10TH
-
-    if(type == "tenth"){
-
-        tenthFiles.push(...files);
-
-        renderFiles(
-            tenthFiles,
-            "tenthPreview",
-            "tenth"
-        );
-
-    }
-
-    // 12TH
-
-    if(type == "twelfth"){
-
-        twelfthFiles.push(...files);
-
-        renderFiles(
-            twelfthFiles,
-            "twelfthPreview",
-            "twelfth"
-        );
-
-    }
-
-    event.target.value = "";
-
-}
-
-
-// =====================================
-// RENDER FILES
-// =====================================
-
-function renderFiles(files,previewId,type){
-
-    const preview =
-    document.getElementById(previewId);
-
-    preview.innerHTML = "";
-
-    files.forEach((file,index)=>{
-
-        preview.innerHTML += `
-
-            <div class="file-item">
-
-                <span>${file.name}</span>
-
-                <button class="remove-btn"
-                onclick="removeFile('${type}',${index})">
-
-                    Remove
-
-                </button>
-
-            </div>
-
-        `;
-
+async function ensureTaxpayerRecord() {
+    return ensureRecordOrCreate({
+        reportName:        REPORTS.TAXPAYER,
+        formName:          FORMS.TAXPAYER,
+        currentId:         taxpayerRecordId,
+        createPayload:     () => ({ Occupation: "" }),
+        onCreatedId:       (id) => { taxpayerRecordId = id; },
+        masterLookupField: "Person_Taxpayer_s_Information"
     });
-
 }
 
-
-// =====================================
-// REMOVE FILE
-// =====================================
-
-function removeFile(type,index){
-
-    if(type == "resume"){
-
-        resumeFiles.splice(index,1);
-
-        renderFiles(
-            resumeFiles,
-            "resumePreview",
-            "resume"
-        );
-
-    }
-
-    if(type == "tenth"){
-
-        tenthFiles.splice(index,1);
-
-        renderFiles(
-            tenthFiles,
-            "tenthPreview",
-            "tenth"
-        );
-
-    }
-
-    if(type == "twelfth"){
-
-        twelfthFiles.splice(index,1);
-
-        renderFiles(
-            twelfthFiles,
-            "twelfthPreview",
-            "twelfth"
-        );
-
-    }
-
+async function ensureSpouseRecord() {
+    return ensureRecordOrCreate({
+        reportName:        REPORTS.SPOUSE,
+        formName:          FORMS.SPOUSE,
+        currentId:         spouseRecordId,
+        createPayload:     () => ({ Spouse_Occupation: "" }),
+        onCreatedId:       (id) => { spouseRecordId = id; },
+        masterLookupField: "Personal_Spouse_Information"
+    });
 }
 
+async function ensureDependentRecord() {
+    return ensureRecordOrCreate({
+        reportName:        REPORTS.DEPENDENT,
+        formName:          FORMS.DEPENDENT,
+        currentId:         dependRecordId,
+        createPayload:     () => ({ How_many_Dependents_do_you_Have: "" }),
+        onCreatedId:       (id) => { dependRecordId = id; },
+        masterLookupField: "Personal_Dependent"
+    });
+}
 
-// =====================================
-// SAVE DOCUMENTS
-// =====================================
+async function ensureDocumentWizardRecord() {
+    return ensureRecordOrCreate({
+        reportName:        REPORTS.DOCUMENT,
+        formName:          FORMS.DOC_WIZARD,
+        currentId:         documentRecordId,
+        createPayload:     () => ({ Name: "Document Wizard" }),
+        onCreatedId:       (id) => { documentRecordId = id; },
+        masterLookupField: "Document_Upload_Wizard"
+    });
+}
 
-function saveDocuments(){
+// =====================================================
+// FETCH MASTER RECORD
+// =====================================================
 
-    // FIRST TIME CREATE
+async function fetchMasterRecord() {
+    try {
 
-    if(!documentRecordId){
-
-        ZOHO.CREATOR.API.addRecord({
-
-            appName:APP_NAME,
-
-            formName:"Documents_Upload",
-
-            data:{
-                data:{}
-            }
-
-        }).then(function(response){
-
-            console.log(response);
-
-            if(response.code == 3000){
-
-                // SAVE RECORD ID
-
-                documentRecordId =
-                response.data.ID;
-
-                console.log(
-                    "Document Record ID : ",
-                    documentRecordId
-                );
-
-
-
-                // UPLOAD FILES
-
-                uploadAllFiles();
-
-
-
-                // CHANGE BUTTON
-
-                document.getElementById("documentBtn").innerText =
-                "Update Documents";
-
-
-
-                // CHANGE FUNCTION
-
-                document.getElementById("documentBtn").onclick =
-                updateDocuments;
-
-
-
-                // COMPLETE STEP
-
-                steps[2].classList.add("completed");
-
-
-
-                // OPEN STEP 4
-
-                showStep(4);
-
-            }
-
+        const response = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.MASTER,
+            id:         MASTER_RECORD_ID
         });
 
+        const data = extractData(response);
+
+        console.log("MASTER DATA", data);
+
+        basicInfoRecordId =
+            data?.Personal_Basic_Information?.ID ||
+            data?.Personal_Basic_Information     || "";
+
+        taxpayerRecordId =
+            data?.Person_Taxpayer_s_Information?.ID ||
+            data?.Person_Taxpayer_s_Information     || "";
+
+        spouseRecordId =
+            data?.Personal_Spouse_Information?.ID ||
+            data?.Personal_Spouse_Information     || "";
+
+        dependRecordId =
+            data?.Personal_Dependent?.ID ||
+            data?.Personal_Dependent     || "";
+
+        documentRecordId =
+            data?.Document_Upload_Wizard?.ID ||
+            data?.Document_Upload_Wizard     || "";
+
+        console.log("basicInfoRecordId :", basicInfoRecordId);
+        console.log("taxpayerRecordId  :", taxpayerRecordId);
+        console.log("spouseRecordId    :", spouseRecordId);
+        console.log("dependRecordId    :", dependRecordId);
+        console.log("documentRecordId  :", documentRecordId);
+
+    } catch (err) {
+        console.error("❌ MASTER FETCH ERROR", err);
     }
-
-    // UPDATE EXISTING RECORD
-
-    else{
-
-        uploadAllFiles();
-
-
-
-        // OPEN STEP 4
-
-        showStep(4);
-
-    }
-
 }
 
+// =====================================================
+// LOAD BASIC INFO
+// =====================================================
 
+async function loadBasicInfo() {
+    if (!basicInfoRecordId) { console.log("⚠️ NO BASIC INFO RECORD"); return; }
+    try {
 
-// =====================================
-// UPLOAD ALL FILES
-// =====================================
+        const response = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.BASIC_INFO,
+            id:         basicInfoRecordId
+        });
 
-async function uploadAllFiles(){
+        const rec = extractData(response);
+        console.log("BASIC INFO DATA", rec);
 
-    // =====================================
-    // CLEAR OLD FILES FIRST
-    // =====================================
+        setField('[name="tax_year"]',      rec.Tax_Year       || "");
+        setField('[name="filing_status"]', rec.Filling_Status || "");
+        setField('[name="address1"]',      rec.Home_Address?.address_line_1 || "");
+        setField('[name="address2"]',      rec.Home_Address?.address_line_2 || "");
+        setField('[name="city"]',          rec.Home_Address?.district_city  || "");
+        setField('[name="state"]',         rec.Home_Address?.state_province || "");
+        setField('[name="postal_code"]',   rec.Home_Address?.postal_code    || "");
+        setField('[name="country"]',       rec.Home_Address?.country        || "");
 
-    await clearFieldFiles("Upload_Resume");
-
-    await clearFieldFiles("Upload_10th_Marksheet");
-
-    await clearFieldFiles("Upload_12th_Marksheet");
-
-
-
-    // =====================================
-    // UPLOAD RESUME FILES
-    // =====================================
-
-    for(let file of resumeFiles){
-
-        await uploadSingleFile(
-            "Upload_Resume",
-            file
-        );
-
-    }
-
-
-
-    // =====================================
-    // UPLOAD 10TH FILES
-    // =====================================
-
-    for(let file of tenthFiles){
-
-        await uploadSingleFile(
-            "Upload_10th_Marksheet",
-            file
-        );
-
-    }
-
-
-
-    // =====================================
-    // UPLOAD 12TH FILES
-    // =====================================
-
-    for(let file of twelfthFiles){
-
-        await uploadSingleFile(
-            "Upload_12th_Marksheet",
-            file
-        );
-
-    }
-
-
-
-   openFinalStep();
-
+    } catch (err) { console.error("❌ LOAD BASIC INFO ERROR", err); }
 }
 
+// =====================================================
+// LOAD TAXPAYER
+// =====================================================
 
-// =====================================
-// SINGLE FILE UPLOAD
-// =====================================
+async function loadTaxpayer() {
+    if (!taxpayerRecordId) { console.log("⚠️ NO TAXPAYER RECORD"); return; }
+    try {
 
-function uploadSingleFile(fieldName,file){
+        const response = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.TAXPAYER,
+            id:         taxpayerRecordId
+        });
 
-    return ZOHO.CREATOR.API.uploadFile({
+        const rec = extractData(response);
+        console.log("TAXPAYER DATA", rec);
 
-        appName : APP_NAME,
+        setField('[name="taxpayer_first_name"]', rec.TaxPayer_s_Name1?.first_name || "");
+        setField('[name="taxpayer_last_name"]',  rec.TaxPayer_s_Name1?.last_name  || "");
+        setField('[name="taxpayer_email"]',      rec.Email          || "");
+        setField('[name="taxpayer_phone"]',      rec.Phone_Number1  || "");
+        setField('[name="taxpayer_dob"]',        zohoDateToInput(rec.Date_of_Birth));
+        setField('[name="taxpayer_occu"]',       rec.Occupation     || "");
+        setField('[name="taxpayer_ssn"]',        rec.TaxPayer_s_Name || "");
 
-        reportName :
-        "Documents_Upload_Report",
+    } catch (err) { console.error("❌ LOAD TAXPAYER ERROR", err); }
+}
 
-        id : documentRecordId,
+// =====================================================
+// LOAD SPOUSE
+// =====================================================
 
-        fieldName : fieldName,
+async function loadSpouse() {
+    if (!spouseRecordId) { console.log("⚠️ NO SPOUSE RECORD"); return; }
+    try {
 
-        file : file
+        const response = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.SPOUSE,
+            id:         spouseRecordId
+        });
 
+        const rec = extractData(response);
+        console.log("SPOUSE DATA", rec);
+
+        setField('[name="spouse_first_name"]', rec.Spouse_Name?.first_name || "");
+        setField('[name="spouse_last_name"]',  rec.Spouse_Name?.last_name  || "");
+        setField('[name="spouse_email"]',      rec.Spouse_s_Email          || "");
+        setField('[name="spouse_phone"]',      rec.Spouse_s_Phone_Number   || "");
+        setField('[name="spouse_dob"]',        zohoDateToInput(rec.Spouse_DOB));
+        setField('[name="Spouse_Occupation"]', rec.Spouse_Occupation       || "");
+        setField('[name="spouse_ssn"]',        rec.Spouse_SSN              || "");
+
+    } catch (err) { console.error("❌ LOAD SPOUSE ERROR", err); }
+}
+
+// =====================================================
+// LOAD DEPENDENT
+// =====================================================
+
+async function loadDependent() {
+
+    if (!dependRecordId) {
+        console.log("⚠️ NO DEPENDENT RECORD — showing blank row");
+        depChildRows = [{
+            ID: null, isNew: true,
+            First_Name: "", Last_Name: "",
+            Relationship: "", Date_of_Birth: "", SSN: ""
+        }];
+        renderDependentRows();
+        return;
+    }
+
+    try {
+
+        const response = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.DEPENDENT,
+            id:         dependRecordId
+        });
+
+        const rec = extractData(response);
+        console.log("DEPENDENT PARENT DATA", rec);
+
+        setField('[name="dependent_count"]',
+            rec.How_many_Dependents_do_you_Have || "");
+
+        const children = rec.Dependents_Children_other || [];
+        console.log("SUBFORM CHILDREN RAW", children);
+
+        if (!children.length) {
+            depChildRows = [{
+                ID: null, isNew: true,
+                First_Name: "", Last_Name: "",
+                Relationship: "", Date_of_Birth: "", SSN: ""
+            }];
+            renderDependentRows();
+            return;
+        }
+
+        depChildRows = children.map(function (child) {
+        console.log("SUBFORM ROW RAW", child);
+    
+        const display = child.display_value || "";
+    
+        // Format: "First Last,DOB,SSN,false,Relationship"
+        const parts = display.split(",");
+    
+        // First part mein "First Last" hai — space se split karo
+        const nameParts = (parts[0] || "").trim().split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName  = nameParts.slice(1).join(" ") || ""; // baaki sab last name
+
+        return {
+            ID:            child.ID || null,
+            isNew:         false,
+            First_Name:    firstName,
+            Last_Name:     lastName,
+            Date_of_Birth: parts[1]?.trim() || "",   // "31-May-2026"
+            SSN:           parts[2]?.trim() || "",   // "111111111"
+            Relationship:  parts[4]?.trim() || ""    // "Daughter" (index 3 = false skip)
+           };
+        });
+        console.log("MAPPED DEP ROWS", depChildRows);
+        renderDependentRows();
+
+    } catch (err) {
+        console.error("❌ LOAD DEPENDENT ERROR", err);
+    }
+}
+
+// =====================================================
+// RENDER DEPENDENT ROWS
+// =====================================================
+
+function renderDependentRows() {
+
+    const tbody = document.getElementById("dependentBody");
+    if (!tbody) { console.warn("⚠️ dependentBody not found"); return; }
+
+    tbody.innerHTML = "";
+
+    depChildRows.forEach(function (row, idx) {
+
+        const tr = document.createElement("tr");
+        tr.id    = "depRow_" + idx;
+
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="dep-input"
+                    data-idx="${idx}" data-col="First_Name"
+                    value="${escapeHtml(row.First_Name || "")}"
+                    placeholder="First Name" />
+            </td>
+            <td>
+                <input type="text" class="dep-input"
+                    data-idx="${idx}" data-col="Last_Name"
+                    value="${escapeHtml(row.Last_Name || "")}"
+                    placeholder="Last Name" />
+            </td>
+            <td>
+                <select class="dep-input"
+                    data-idx="${idx}" data-col="Relationship">
+                    <option value="">Select</option>
+                    <option ${row.Relationship === "Son"                   ? "selected" : ""}>Son</option>
+                    <option ${row.Relationship === "Daughter"              ? "selected" : ""}>Daughter</option>
+                    <option ${row.Relationship === "Step Child"            ? "selected" : ""}>Step Child</option>
+                    <option ${row.Relationship === "Eligible Foster Child" ? "selected" : ""}>Eligible Foster Child</option>
+                    <option ${row.Relationship === "Brother"               ? "selected" : ""}>Brother</option>
+                    <option ${row.Relationship === "Other"                 ? "selected" : ""}>Other</option>
+                </select>
+            </td>
+            <td>
+                <input type="date" class="dep-input"
+                    data-idx="${idx}" data-col="Date_of_Birth"
+                    value="${zohoDateToInput(row.Date_of_Birth || "")}" />
+            </td>
+            <td>
+                <input type="text" class="dep-input"
+                    data-idx="${idx}" data-col="SSN"
+                    value="${escapeHtml(row.SSN || "")}"
+                    placeholder="SSN" />
+            </td>
+           
+            <td>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+                    <button type="button" class="dep-save-btn" data-idx="${idx}">Save</button>
+                    <button type="button" class="dep-del-btn"  data-idx="${idx}">X</button>
+                    </div>
+                </td> `;
+
+        tbody.appendChild(tr);
+
+        tr.querySelector(".dep-save-btn")
+          .addEventListener("click", function () { saveDepChildRow(idx); });
+        tr.querySelector(".dep-del-btn")
+          .addEventListener("click", function () { deleteDepChildRow(idx); });
     });
-
 }
 
+// =====================================================
+// SAVE ONE DEPENDENT CHILD ROW
+// CREATE: formName "Personal_Dependent" + Personal_Master
+// UPDATE: reportName "Personal_Dependent_Report" + child ID
+// =====================================================
 
+async function saveDepChildRow(idx) {
 
+    const row = depChildRows[idx];
 
-
-
-
-
-
-
-// =====================================
-// CLEAR FIELD FILES
-// =====================================
-
-function clearFieldFiles(fieldName){
-
-    let emptyData = {
-
-        data:{}
-
+    const getValue = function (col) {
+        const el = document.querySelector(
+            `.dep-input[data-idx="${idx}"][data-col="${col}"]`
+        );
+        return el ? (el.value || "") : "";
     };
 
-    emptyData.data[fieldName] = [];
+    const firstName    = getValue("First_Name");
+    const lastName     = getValue("Last_Name");
+    const relationship = getValue("Relationship");
+    const dob          = getValue("Date_of_Birth");
+    const ssn          = getValue("SSN");
 
-    return ZOHO.CREATOR.API.updateRecord({
+    if (!firstName && !lastName) {
+        alert("Please enter at least a first or last name.");
+        return;
+    }
 
-        appName:APP_NAME,
+    if (!dependRecordId) {
+        try { await saveDependent(); }
+        catch (err) { alert("Could not create parent record: " + err.message); return; }
+    }
 
-        reportName:"Documents_Upload_Report",
+    const payload = {
+        First_Name:      firstName,
+        Last_Name:       lastName,
+        Relationship:    relationship,
+        Date_of_Birth:   inputDateToZoho(dob),
+        SSN:             ssn,
+        Personal_Master: MASTER_RECORD_ID
+    };
 
-        id:documentRecordId,
+    console.log("💾 SAVE DEP CHILD idx=" + idx, payload);
 
-        data:emptyData
+    try {
 
+        if (row.isNew || !row.ID) {
+
+            console.log("➕ Creating dep child — formName:", FORMS.DEP_CHILD);
+
+            const response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.DEP_CHILD,
+                data:     { data: payload }
+            });
+
+            console.log("DEP CHILD CREATE", response);
+            assertSuccess(response, "Dependent child create");
+
+            depChildRows[idx].ID            = response.data?.ID || "";
+            depChildRows[idx].isNew         = false;
+            depChildRows[idx].First_Name    = firstName;
+            depChildRows[idx].Last_Name     = lastName;
+            depChildRows[idx].Relationship  = relationship;
+            depChildRows[idx].Date_of_Birth = dob;
+            depChildRows[idx].SSN           = ssn;
+
+            console.log("✅ Created dep child ID:", depChildRows[idx].ID);
+
+        } else {
+
+            console.log("✏️ Updating dep child — ID:", row.ID);
+
+            const response = await ZOHO.CREATOR.API.updateRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.DEP_CHILD,
+                id:         row.ID,
+                data:       { data: payload }
+            });
+
+            console.log("DEP CHILD UPDATE", response);
+            assertSuccess(response, "Dependent child update");
+
+            depChildRows[idx].First_Name    = firstName;
+            depChildRows[idx].Last_Name     = lastName;
+            depChildRows[idx].Relationship  = relationship;
+            depChildRows[idx].Date_of_Birth = dob;
+            depChildRows[idx].SSN           = ssn;
+
+            console.log("✅ Updated dep child ID:", row.ID);
+        }
+
+        alert("Dependent " + (idx + 1) + " saved successfully!");
+
+    } catch (err) {
+        console.error("❌ SAVE DEP CHILD ERROR", err);
+        alert("Save failed: " + err.message);
+    }
+}
+
+// =====================================================
+// DELETE ONE DEPENDENT CHILD ROW
+// =====================================================
+
+async function deleteDepChildRow(idx) {
+
+    const row = depChildRows[idx];
+    if (!confirm("Delete this dependent?")) return;
+
+    try {
+
+        if (!row.isNew && row.ID) {
+            const response = await ZOHO.CREATOR.API.deleteRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.DEP_CHILD,
+                id:         row.ID
+            });
+            console.log("DEP CHILD DELETE", response);
+            assertSuccess(response, "Dependent delete");
+        }
+
+        depChildRows.splice(idx, 1);
+
+        if (depChildRows.length === 0) {
+            depChildRows.push({
+                ID: null, isNew: true,
+                First_Name: "", Last_Name: "",
+                Relationship: "", Date_of_Birth: "", SSN: ""
+            });
+        }
+
+        renderDependentRows();
+
+    } catch (err) {
+        console.error("❌ DELETE DEP CHILD ERROR", err);
+        alert("Delete failed: " + err.message);
+    }
+}
+
+// =====================================================
+// LOAD DOCUMENTS
+// =====================================================
+
+async function loadDocuments() {
+
+    if (!documentRecordId) { console.log("⚠️ NO DOCUMENT RECORD"); return; }
+
+    try {
+
+        const wizardResponse = await ZOHO.CREATOR.API.getRecordById({
+            appName:    APP_NAME,
+            reportName: REPORTS.DOCUMENT,
+            id:         documentRecordId
+        });
+
+        console.log("DOCUMENT WIZARD DATA", extractData(wizardResponse));
+
+        const docResponse = await ZOHO.CREATOR.API.getAllRecords({
+            appName:    APP_NAME,
+            reportName: REPORTS.DOC_CENTER,
+            criteria:   "(Document_Upload_Wizard ==" + documentRecordId + ")"
+        });
+
+        const records = docResponse.data || [];
+        console.log("DOCUMENT CENTER RECORDS", records);
+
+        docCenterRows = records.map(function (r) {
+            return Object.assign({}, r, { isNew: false });
+        });
+
+        renderDocumentRows();
+
+    } catch (err) {
+        console.error("❌ LOAD DOCUMENTS ERROR", err);
+    }
+}
+// =====================================================
+// RENDER DOCUMENT ROWS
+// =====================================================
+
+function renderDocumentRows() {
+
+    const tbody = document.getElementById("docTableBody");
+    if (!tbody) { console.warn("⚠️ docTableBody not found"); return; }
+
+    tbody.innerHTML = "";
+
+    if (docCenterRows.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center;color:#888;padding:20px;">
+                    No documents found. Click "+ Add Document" to add one.
+                </td>
+            </tr>`;
+        return;
+    }
+
+    docCenterRows.forEach(function (row, idx) {
+
+        const tr = document.createElement("tr");
+        tr.id    = "docRow_" + idx;
+
+        const f      = row.Document_File;
+        const rawUrl = Array.isArray(f) ? (f[0] || "") : (f || "");
+        const fileUrl = rawUrl
+            ? "https://creatorapp.zoho.in" + String(rawUrl).replace(/"/g, "'")
+            : "";
+
+        const fileCell = fileUrl
+            ? `<div class="file-view">
+                   <a href="${fileUrl}" target="_blank" rel="noopener noreferrer">View File</a>
+               </div>
+               <div class="file-upload">
+                   <input type="file" class="doc-input"
+                       data-idx="${idx}" data-col="Document_File" />
+               </div>`
+            : `<div class="file-upload">
+                   <input type="file" class="doc-input"
+                       data-idx="${idx}" data-col="Document_File" />
+               </div>`;
+
+        tr.innerHTML = `
+            <td>
+                <input type="text" class="doc-input"
+                    data-idx="${idx}" data-col="Document_Name"
+                    value="${escapeHtml(row.Document_Name || "")}"
+                    placeholder="Document Name" />
+            </td>
+            <td>
+                <select class="doc-input"
+                    data-idx="${idx}" data-col="Document_Type">
+                    <option value="">Select</option>
+                    <option ${row.Document_Type === "IRS"                         ? "selected" : ""}>IRS</option>
+                    <option ${row.Document_Type === "Tax Years"                   ? "selected" : ""}>Tax Years</option>
+                    <option ${row.Document_Type === "Tax Planning"                ? "selected" : ""}>Tax Planning</option>
+                    <option ${row.Document_Type === "Financials"                  ? "selected" : ""}>Financials</option>
+                    <option ${row.Document_Type === "Engagement Letters & POA"   ? "selected" : ""}>Engagement Letters & POA</option>
+                    <option ${row.Document_Type === "Company Formation Documents" ? "selected" : ""}>Company Formation Documents</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" class="doc-input"
+                    data-idx="${idx}" data-col="Document_Desciption"
+                    value="${escapeHtml(row.Document_Desciption || "")}"
+                    placeholder="Description" />
+            </td>
+            <td>${fileCell}</td>
+            <td>
+                <input type="date" class="doc-input"
+                    data-idx="${idx}" data-col="Upload_Date"
+                    value="${zohoDateToInput(row.Upload_Date || "")}" />
+            </td>
+
+            <td>
+                <input type="text" class="doc-input"
+                    data-idx="${idx}" data-col="Year_field"
+                    value="${escapeHtml(row.Year_field || "")}" />
+            </td>
+            <td>
+                <select class="doc-input"
+                    data-idx="${idx}" data-col="Status">
+                    <option value="">Select</option>
+                    <option ${row.Status === "Pending"      ? "selected" : ""}>Pending</option>
+                    <option ${row.Status === "Submitted"    ? "selected" : ""}>Submitted</option>
+                    <option ${row.Status === "Under Review" ? "selected" : ""}>Under Review</option>
+                    <option ${row.Status === "Approved"     ? "selected" : ""}>Approved</option>
+                    <option ${row.Status === "Rejected"     ? "selected" : ""}>Rejected</option>
+                </select>
+            </td>
+            <td>
+               <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+                    <button type="button" class="doc-save-btn" data-idx="${idx}">Save</button>
+                    <button type="button" class="doc-del-btn"  data-idx="${idx}">Delete</button>
+                </div>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        tr.querySelector(".doc-save-btn")
+          .addEventListener("click", function () { saveDocRow(idx); });
+        tr.querySelector(".doc-del-btn")
+          .addEventListener("click", function () { deleteDocRow(idx); });
     });
-
 }
 
+// =====================================================
+// SAVE ONE DOCUMENT ROW
+// =====================================================
 
+async function saveDocRow(idx) {
 
+    const row = docCenterRows[idx];
+    const payload = collectDocRowPayload(idx);
+    delete payload.Document_File; // never send file in JSON payload
 
+    payload.Document_Upload_Wizard = documentRecordId;
 
+    const fileInput = document.querySelector(
+        `.doc-input[data-idx="${idx}"][data-col="Document_File"], .doc-input[data-idx="${idx}"][name="Document_File"]`
+    );
+    const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
 
-// =====================================
-// OPEN STEP 4 AFTER DOCUMENTS
-// =====================================
+    
 
-function openFinalStep(){
+    console.log("SAVE DOC ROW", idx, payload);
 
-    steps[2].classList.add("completed");
+    try {
+        let recordId = row.ID;
+        console.log("Record ID", recordId);
 
-    showStep(4);
+        if (row.isNew) {
+            // Step 1: Create record
+            const response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.DOC_UPLOAD,
+                data: { data: payload }
+            });
 
+            console.log("DOC CREATE", response);
+            assertSuccess(response, "Document create");
+
+            recordId = response.data.ID;
+            docCenterRows[idx].ID   = recordId;
+            docCenterRows[idx].isNew = false;
+
+            // Step 2: Upload file immediately after create
+            if (hasFile) {
+                const uploadResponse = await ZOHO.CREATOR.API.uploadFile({
+                    appName:   APP_NAME,
+                    formName:  FORMS.DOC_UPLOAD,
+                    id:        recordId,
+                    fieldName: "Document_File",
+                    file:      fileInput.files[0]
+                });
+                console.log("DOC FILE UPLOAD (new)", uploadResponse);
+            }
+
+        } else {
+            // Update existing record
+            const response = await ZOHO.CREATOR.API.updateRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.DOC_CENTER,
+                id:         recordId,
+                data:       { data: payload }
+            });
+
+            console.log("DOC UPDATE", response);
+            assertSuccess(response, "Document update");
+
+            // Upload new file if selected
+            if (hasFile) {
+                const uploadResponse = await ZOHO.CREATOR.API.uploadFile({
+                    appName:   APP_NAME,
+                    reportName: REPORTS.DOC_CENTER,
+                    id:        recordId,
+                    fieldName: "Document_File",
+                    file:      fileInput.files[0]
+                });
+                console.log("DOC FILE UPLOAD (update)", uploadResponse);
+            }
+        }
+
+        alert(`Document row ${idx + 1} saved successfully`);
+
+    } catch (err) {
+        console.error("SAVE DOC ROW ERROR", err);
+        alert("Save failed: " + (err.message || JSON.stringify(err)));
+    }
 }
 
+// =====================================================
+// DELETE ONE DOCUMENT ROW
+// =====================================================
 
+async function deleteDocRow(idx) {
 
+    const row = docCenterRows[idx];
+    if (!confirm("Delete this document?")) return;
 
+    try {
 
+        if (!row.isNew && row.ID) {
 
-// =====================================
-// BACK TO DOCUMENT STEP
-// =====================================
+            // ✅ Zoho delete API criteria use karta hai, id nahi
+            const response = await ZOHO.CREATOR.API.deleteRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.DOC_CENTER,
+                criteria:   "(ID==" + row.ID + ")"
+            });
 
-function goBackToDocuments(){
+            console.log("DOC DELETE RESPONSE", response);
 
-    showStep(3);
+            // Response structure: { code: 3000, result: [{code: 3000, data: {ID: "..."}}] }
+            if (!response || response.code !== 3000) {
+                throw new Error("Delete failed — code: " + (response?.code || "unknown"));
+            }
+        }
 
+        docCenterRows.splice(idx, 1);
+        renderDocumentRows();
+        alert("Document deleted successfully");
+
+    } catch (err) {
+        console.error("❌ DELETE DOC ROW ERROR", err);
+        alert("Delete failed: " + err.message);
+    }
 }
 
+// =====================================================
+// COLLECT DOC ROW PAYLOAD (skips file inputs)
+// =====================================================
 
-// =====================================
-// FINAL SUBMIT
-// =====================================
+function collectDocRowPayload(idx) {
+    const payload = {};
+    document
+    .querySelectorAll(".doc-input[data-idx='" + idx + "']")
+    .forEach(function (input) {
+        if (input.type === "file") return;
+        const col = input.dataset.col;
+        let   val = input.value || "";
+        if (input.type === "date" && val) val = inputDateToZoho(val);
+        payload[col] = val;
+    });
+    return payload;
+}
 
-function finalSubmit(){
+// =====================================================
+// SAVE BASIC INFO
+// =====================================================
 
-    alert("Application Submitted Successfully");
+async function saveBasicInfo() {
 
+    console.log("--- saveBasicInfo START ---");
+
+    const payload = {};
+
+    const taxYear       = getField('[name="tax_year"]');
+    const fillingStatus = getField('[name="filing_status"]');
+
+    if (taxYear)       payload.Tax_Year       = taxYear;
+    if (fillingStatus) payload.Filling_Status = fillingStatus;
+
+    const addr1   = getField('[name="address1"]');
+    const addr2   = getField('[name="address2"]');
+    const city    = getField('[name="city"]');
+    const state   = getField('[name="state"]');
+    const postal  = getField('[name="postal_code"]');
+    const country = getField('[name="country"]');
+
+    if (addr1 || city || state || postal || country) {
+        payload.Home_Address = {
+            address_line_1: addr1,
+            address_line_2: addr2,
+            district_city:  city,
+            state_province: state,
+            postal_code:    postal,
+            country:        country
+        };
+    }
+
+    if (basicInfoRecordId) {
+
+        const response = await ZOHO.CREATOR.API.updateRecord({
+            appName:    APP_NAME,
+            reportName: REPORTS.BASIC_INFO,
+            id:         basicInfoRecordId,
+            data:       { data: payload }
+        });
+        assertSuccess(response, "Basic Info update");
+
+    } else {
+
+        let response;
+        try {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.BASIC_INFO,
+                data:     { data: payload }
+            });
+        } catch (sdkErr) {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.BASIC_INFO,
+                data:       { data: payload }
+            });
+        }
+        assertSuccess(response, "Basic Info create");
+        basicInfoRecordId = response.data?.ID || "";
+    }
+
+    console.log("--- saveBasicInfo END ---");
+}
+
+// =====================================================
+// SAVE TAXPAYER
+// =====================================================
+
+async function saveTaxpayer() {
+
+    console.log("--- saveTaxpayer START ---");
+
+    const payload = {
+        TaxPayer_s_Name1: {
+            first_name: getField('[name="taxpayer_first_name"]'),
+            last_name:  getField('[name="taxpayer_last_name"]')
+        },
+        Email:         getField('[name="taxpayer_email"]'),
+        Phone_Number1: getField('[name="taxpayer_phone"]'),
+        Date_of_Birth: inputDateToZoho(getField('[name="taxpayer_dob"]')),
+        Occupation:    getField('[name="taxpayer_occu"]'),
+        Taxpayer_SSN:  getField('[name="taxpayer_ssn"]')
+    };
+
+    if (taxpayerRecordId) {
+
+        const response = await ZOHO.CREATOR.API.updateRecord({
+            appName:    APP_NAME,
+            reportName: REPORTS.TAXPAYER,
+            id:         taxpayerRecordId,
+            data:       { data: payload }
+        });
+        assertSuccess(response, "Taxpayer update");
+
+    } else {
+
+        let response;
+        try {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.TAXPAYER,
+                data:     { data: payload }
+            });
+        } catch (sdkErr) {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.TAXPAYER,
+                data:       { data: payload }
+            });
+        }
+        assertSuccess(response, "Taxpayer create");
+        taxpayerRecordId = response.data?.ID || "";
+    }
+
+    console.log("--- saveTaxpayer END ---");
+}
+
+// =====================================================
+// SAVE SPOUSE
+// =====================================================
+
+async function saveSpouse() {
+
+    console.log("--- saveSpouse START ---");
+
+    const payload = {
+        Spouse_Name: {
+            first_name: getField('[name="spouse_first_name"]'),
+            last_name:  getField('[name="spouse_last_name"]')
+        },
+        Spouse_s_Email:        getField('[name="spouse_email"]'),
+        Spouse_s_Phone_Number: getField('[name="spouse_phone"]'),
+        Spouse_DOB:            inputDateToZoho(getField('[name="spouse_dob"]')),
+        Spouse_Occupation:     getField('[name="Spouse_Occupation"]'),
+        Spouse_SSN:            getField('[name="spouse_ssn"]')
+    };
+
+    if (spouseRecordId) {
+
+        const response = await ZOHO.CREATOR.API.updateRecord({
+            appName:    APP_NAME,
+            reportName: REPORTS.SPOUSE,
+            id:         spouseRecordId,
+            data:       { data: payload }
+        });
+        assertSuccess(response, "Spouse update");
+
+    } else {
+
+        let response;
+        try {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.SPOUSE,
+                data:     { data: payload }
+            });
+        } catch (sdkErr) {
+            response = await ZOHO.CREATOR.API.addRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.SPOUSE,
+                data:       { data: payload }
+            });
+        }
+        assertSuccess(response, "Spouse create");
+        spouseRecordId = response.data?.ID || "";
+    }
+
+    console.log("--- saveSpouse END ---");
+}
+
+// =====================================================
+// SAVE DEPENDENT PARENT ONLY
+// ⚠️ Saves ONLY How_many_Dependents_do_you_Have
+//    Child rows are saved individually via saveDepChildRow
+// =====================================================
+
+async function saveDependent() {
+
+    console.log("--- saveDependent START ---");
+
+    const payload = {
+        How_many_Dependents_do_you_Have:
+            getField('[name="dependent_count"]')
+    };
+
+    try {
+
+        if (dependRecordId) {
+
+            const response = await ZOHO.CREATOR.API.updateRecord({
+                appName:    APP_NAME,
+                reportName: REPORTS.DEPENDENT,
+                id:         dependRecordId,
+                data:       { data: payload }
+            });
+            assertSuccess(response, "Dependent update");
+
+        } else {
+
+            const response = await ZOHO.CREATOR.API.addRecord({
+                appName:  APP_NAME,
+                formName: FORMS.DEPENDENT,
+                data:     { data: payload }
+            });
+            assertSuccess(response, "Dependent create");
+            dependRecordId = response.data?.ID || "";
+        }
+
+    } catch (err) {
+        console.error("❌ SAVE DEPENDENT ERROR", err);
+        throw err;
+    }
+
+    console.log("--- saveDependent END ---");
 }

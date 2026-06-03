@@ -6,17 +6,18 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f5f7; /* Matching light gray background */
-    padding: 40px 20px;
+    background: #f4f5f7; 
     color: #333;
+    min-height: 100vh; /* Ensures body takes full vertical height */
 }
 
 .container {
     max-width: 100%;
+    min-height: 100vh; /* Ensures the white card reaches the bottom */
     margin: 0 auto;
     background: white;
     padding: 40px;
-    border-radius: 8px;
+    box-sizing: border-box; /* Prevents padding from breaking width */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
@@ -32,7 +33,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 70px; /* Room for absolute labels */
+    margin-bottom: 70px; 
     position: relative;
     z-index: 10;
 }
@@ -51,7 +52,7 @@ body {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #e2e8f0; /* Default Gray */
+    background: #e2e8f0; 
     color: #fff;
     display: flex;
     align-items: center;
@@ -61,7 +62,6 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Text label below the circle */
 .step p {
     position: absolute;
     top: 45px;
@@ -76,7 +76,7 @@ body {
     background: #e2e8f0;
     position: relative;
     z-index: 1;
-    margin: 0 -10px; /* Slight overlap for seamless flow */
+    margin: 0 -10px; 
     transition: background 0.3s ease;
 }
 
@@ -91,26 +91,26 @@ body {
 }
 
 .step.active span {
-    box-shadow: 0 0 0 6px rgba(139, 0, 0, 0.15); /* Semi-transparent halo */
+    box-shadow: 0 0 0 6px rgba(139, 0, 0, 0.15); 
 }
 
-/* Color the line red ONLY if the previous step is completed */
 .step.completed + .line {
     background: #8b0000;
 }
 
 /* ======================================
-   FORM LAYOUT
+   FORM LAYOUT & INPUTS
    ====================================== */
 .form-step {
     display: none;
     position: relative;
-    /* padding-top: 50px; Space for the absolute positioned 'Back' button */
     animation: fadeIn 0.4s ease;
 }
 
 .form-step.active {
     display: block;
+    /* width:50%;
+    margin:0px 20% */
 }
 
 @keyframes fadeIn {
@@ -118,7 +118,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Side-by-Side Label & Input Layout */
 .form-step > label {
     display: flex;
     width: 250px;
@@ -131,15 +130,16 @@ body {
 .form-step > input:not([type="button"]), 
 .form-step > select, 
 .form-step > textarea,
-.form-step > div:not(.custom-subform-container):not(.btn-group):not(.form-container) {
+.form-step > div:not(.custom-subform-container):not(.btn-group):not(.address-container) {
     display: inline-block;
-    width: calc(100% - 260px);
-    /* max-width: 400px; */
+    /* width: calc(100% - 260px); */
+    width: 100%;
     margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
     vertical-align: middle;
 }
 
-/* Fix div wrappers for standard inputs (e.g., Gross Pay / Net Pay) */
 .form-step > div > input:not([type="button"]) {
     width: 100%;
 }
@@ -160,10 +160,60 @@ input:focus, select:focus, textarea:focus {
     border-color: #8b0000;
 }
 
-/* Grid Override for Form Container (Address Section) */
-.form-container {
+/* ======================================
+   ADDRESS SECTION
+   ====================================== */
+.address-container {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    max-width: 100%; /* Changed from 700px */
     margin-bottom: 30px;
     width: 100%;
+}
+
+.address-title {
+    font-size: 18px;
+    color: #2b3d63;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.address-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group.full-width {
+    grid-column: span 2;
+}
+
+.address-input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #c5cae4;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+    appearance: none;
+    width: 100%;
+}
+
+.address-input:focus {
+    border-color: #8b0000;
+}
+
+.address-label {
+    font-size: 13px;
+    color: #616e88;
+    margin-top: 6px;
 }
 
 /* ======================================
@@ -171,11 +221,11 @@ input:focus, select:focus, textarea:focus {
    ====================================== */
 .custom-subform-container {
     width: 100%;
+    max-width: 100%; /* Changed from 950px */
     margin-top: 15px;
     margin-bottom: 30px;
     overflow-x: auto;
 }
-
 .custom-subform-container h3 {
     color: #2b3d63;
     font-size: 16px;
@@ -183,22 +233,36 @@ input:focus, select:focus, textarea:focus {
     font-weight: 600;
 }
 
-table {
+.subform-table {
     width: 100%;
     border-collapse: collapse;
+    margin-bottom: 15px;
     min-width: 800px; 
 }
 
-th {
+.docs-table {
+    min-width: 3500px;
+}
+
+thead tr {
     background-color: #f7fafc;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid #c5cae4;
+}
+
+th {
     color: #616e88;
     font-weight: 500;
     text-align: left;
-    padding: 12px 10px;
+    padding: 10px;
     font-size: 13px;
     white-space: nowrap;
 }
+
+/* Table Column Width Utilities */
+.col-icon { width: 40px; }
+.col-sm { width: 140px; }
+.col-md { width: 180px; }
+.text-center { text-align: center; }
 
 td {
     padding: 8px 10px;
@@ -215,25 +279,26 @@ td input, td select {
     box-sizing: border-box;
 }
 
-/* Override inline styling on "+ Add Row" buttons to match the text layout */
-button[onclick^="add"] {
-    background-color: transparent !important;
-    border: none !important;
-    color: #8b0000 !important;
-    font-weight: 500 !important;
-    font-size: 14px !important;
-    padding: 10px 5px !important;
-    box-shadow: none !important;
+/* Custom Add/Remove Buttons */
+.add-row-btn {
+    background-color: #f0f4f8;
+    border: 1px dashed #4a90e2;
+    color: #4a90e2;
+    padding: 8px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    display: inline-block;
+    font-size: 13px;
+    font-weight: 500;
     margin-top: 10px;
+    transition: background-color 0.2s, text-decoration 0.2s;
+    display: inline-block;
 }
 
-button[onclick^="add"]:hover {
+.add-row-btn:hover {
     text-decoration: underline;
+    background-color: #e2e8f0;
 }
 
-/* Red cross remove button inside table */
 button[onclick^="remove"] {
     background: transparent;
     border: none;
@@ -244,46 +309,32 @@ button[onclick^="remove"] {
 }
 
 /* ======================================
-   BUTTONS
+   BOTTOM NAVIGATION BUTTONS
    ====================================== */
 .btn-group {
     display: flex;
-    justify-content: space-between;
-    padding:0%  36%; 
+    justify-content: space-between; /* Pushes Previous/Next to edges */
+    max-width: 800px; /* Optional: limits how far apart the buttons get */
+    margin: 40px auto 20px auto; /* Centers the button group horizontally */
+    gap: 20px; /* Ensures buttons don't touch on small screens */
 }
 
-/* Position Back button top-left */
 button[onclick="prevStep()"] {
-    /* position: absolute;
-    top: 0;
-    left: 0; */
-    border: none;
     background-color: #8b0000;
-    /* border: 1px solid #c5cae4; */
     color: #ffffff;
+    border: none;
     padding: 10px 24px;
     border-radius: 6px;
     font-size: 13px;
     cursor: pointer;
-     transition: background-color 0.2s;
+    transition: background-color 0.2s;
     margin-top: 20px;
 }
-button[onclick="prevStep()"]:hover{
+
+button[onclick="prevStep()"]:hover {
     background: #6a0000;
-    /* border: 1px solid #8b0000; */
-    color: #ffffff;
 }
 
-/* button[onclick="prevStep()"]::before {
-    content: "\2190  "; Adds Arrow Before Text
-    
-} */
-/* button[onclick="prevStep()"]:hover::before{
-    border-radius: 100%;
-    border:2px solid  red;
-} */
-
-/* Default Save & Next buttons */
 button[onclick^="save"], button[id$="Btn"] {
     background-color: #8b0000;
     color: #fff;
@@ -319,67 +370,65 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
 ::-webkit-scrollbar-thumb:hover {
     background: #a0a8cc; 
 }
+
 /* ======================================
    MOBILE RESPONSIVE OVERRIDES (FORCE SWIPE)
    ====================================== */
 @media screen and (max-width: 768px) {
-    /* 1. Container Adjustments (Prevent Outer Clipping) */
     .container {
         padding: 20px 10px !important;
         margin: 10px !important;
         width: calc(100% - 20px) !important;
-        overflow: visible !important; /* Allows progress bar to safely handle overflow internally */
+        overflow: visible !important; 
         box-sizing: border-box !important;
     }
 
-    /* 2. Progress Bar: Forced Hardware Touch Scroll Channel */
     .progress-bar {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important;        /* ABSOLUTELY bans stacking rows */
-        overflow-x: auto !important;         /* Explicitly activates horizontal scrolling */
+        flex-wrap: nowrap !important;        
+        overflow-x: auto !important;         
         overflow-y: hidden !important;
         width: 100% !important;
         max-width: 100% !important;
-        justify-content: flex-start !important; /* Starts track from left edge */
-        padding-bottom: 60px !important;     /* Extra breathing room for text labels */
+        justify-content: flex-start !important; 
+        padding-bottom: 60px !important;     
         margin-bottom: 30px !important;
         padding-top: 10px !important;
-        -webkit-overflow-scrolling: touch !important; /* Enables smooth inertial swipe on iOS */
-        touch-action: pan-x !important;      /* CRITICAL: Overrides browser bugs to force touch-swiping */
+        -webkit-overflow-scrolling: touch !important; 
+        touch-action: pan-x !important;      
     }
 
-    /* Visual Scroll Indicator: Adds a thin track so users know they can swipe */
     .progress-bar::-webkit-scrollbar {
         height: 4px !important;
         display: block !important;
     }
+    
     .progress-bar::-webkit-scrollbar-thumb {
         background: #8b0000 !important;
         border-radius: 4px !important;
     }
+    
     .progress-bar::-webkit-scrollbar-track {
         background: #f1f1f1 !important;
     }
 
-    /* 3. Un-shrinkable Item Sizing (Guarantees Overflow) */
     .step {
-        flex: 0 0 70px !important;          /* Hard locks element sizing */
+        flex: 0 0 70px !important;          
         width: 70px !important;
         min-width: 70px !important;
         max-width: 70px !important;
     }
 
     .line {
-        flex: 0 0 80px !important;          /* Generous width forces items 4+ off screen */
+        flex: 0 0 80px !important;          
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
         height: 4px !important;
-        margin: 0 -5px !important;          /* Seamless track overlap connection */
+        margin: 0 -5px !important;          
     }
 
-    /* 4. Form Layout: Stack Labels and Inputs */
     .form-step > label {
         display: block !important;
         width: 100% !important;
@@ -390,30 +439,33 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
     .form-step > input:not([type="button"]), 
     .form-step > select, 
     .form-step > textarea,
-    .form-step > div:not(.custom-subform-container):not(.btn-group):not(.form-container) {
+    .form-step > div:not(.custom-subform-container):not(.btn-group):not(.address-container) {
         display: block !important;
         width: 100% !important;
         max-width: 100% !important;
         margin-bottom: 20px !important;
-        
     }
 
-    /* 5. Back Button Fix */
     .form-step {
         position: relative !important;
-        padding-top: 65px !important;       /* Creates dedicated ceiling space for the button */
+        padding-top: 65px !important;       
     }
 
     .btn-group, .form-step > div:last-child {
-        position: static !important;        /* Releases button if stuck in a bottom div */
+        position: static !important;        
     }
 
     button[onclick="prevStep()"] {
-        /* position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        margin: 0 !important;
-        z-index: 9999 !important;           Keeps button layered cleanly on top */
         display: none;
+    }
+    
+    /* Address Grid Mobile Fix */
+    .address-container {
+        display: block;
+    }
+    
+    .address-grid {
+        display: flex;
+        flex-direction: column;
     }
 }

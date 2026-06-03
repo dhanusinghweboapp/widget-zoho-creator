@@ -10,7 +10,6 @@
 <body>
 
     <div class="container">
-        <!-- PROGRESS BAR -->
         <div class="progress-bar">
             <div class="step active" onclick="goToStep(1)">
                 <span>1</span><p>Personal</p>
@@ -45,7 +44,6 @@
             </div>
         </div>
 
-        <!-- STEP 1: PERSONAL -->
         <div class="form-step active">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -60,51 +58,50 @@
             <select name="Marital_Status" id="Marital_Status">
                 <option value="" disabled selected>-Select-</option>
                 <option value="Single">Single</option>
-                <option value="Married" selected>Married</option>
+                <option value="Married" >Married</option>
                 <option value="Divorced">Divorced</option>
             </select>
             
             <input type="text" id="Spouse_Full_Name" placeholder="Spouse Full Name">
             <input type="text" id="Spouse_SSN" placeholder="Spouse SSN">
             
-            <div class="form-container" style="display: grid; grid-template-columns: 200px 1fr; gap: 20px; max-width: 700px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
-                <div style="font-size: 18px; color: #2b3d63; font-weight: 500; margin-top: 5px;">Home Address</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px;">
-                    <div style="display: flex; flex-direction: column; grid-column: span 2;">
-                        <input type="text" id="address-line-1" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
-                        <label for="address-line-1" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 1</label>
+            <div class="address-container">
+                <div class="address-title">Home Address</div>
+                <div class="address-grid">
+                    <div class="input-group full-width">
+                        <input type="text" id="address-line-1" class="address-input">
+                        <label for="address-line-1" class="address-label">Address Line 1</label>
                     </div>
-                    <div style="display: flex; flex-direction: column; grid-column: span 2;">
-                        <input type="text" id="address-line-2" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
-                        <label for="address-line-2" style="font-size: 13px; color: #616e88; margin-top: 6px;">Address Line 2</label>
+                    <div class="input-group full-width">
+                        <input type="text" id="address-line-2" class="address-input">
+                        <label for="address-line-2" class="address-label">Address Line 2</label>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <input type="text" id="city-district" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
-                        <label for="city-district" style="font-size: 13px; color: #616e88; margin-top: 6px;">City / District</label>
+                    <div class="input-group">
+                        <input type="text" id="city-district" class="address-input">
+                        <label for="city-district" class="address-label">City / District</label>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <select id="state-dropdown" disabled style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; appearance: none;">
+                    <div class="input-group">
+                        <select id="state-dropdown" class="address-input" disabled>
                             <option value="" disabled selected>Select country first</option>
                         </select>
-                        <label for="state-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">State / Province</label>
+                        <label for="state-dropdown" class="address-label">State / Province</label>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <input type="text" id="postal-code" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box;">
-                        <label for="postal-code" style="font-size: 13px; color: #616e88; margin-top: 6px;">Postal Code</label>
+                    <div class="input-group">
+                        <input type="text" id="postal-code" class="address-input">
+                        <label for="postal-code" class="address-label">Postal Code</label>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <select id="country-dropdown" style="height: 40px; padding: 0 12px; border: 1px solid #c5cae4; border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; appearance: none;">
+                    <div class="input-group">
+                        <select id="country-dropdown" class="address-input">
                             <option value="" disabled selected>Loading countries...</option>
                         </select>
-                        <label for="country-dropdown" style="font-size: 13px; color: #616e88; margin-top: 6px;">Country</label>
+                        <label for="country-dropdown" class="address-label">Country</label>
                     </div>
                 </div>
             </div>
 
-            <button type="button" id="basicBtn" onclick="savePersonalDetails()">Save & Next</button>
+            <button type="button" style="margin-left: 55%;" id="basicBtn" onclick="savePersonalDetails()">Save & Next</button>
         </div>
 
-        <!-- STEP 2: HOUSEHOLD -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -118,33 +115,31 @@
                 <option value="No">No</option>
             </select>
             
-            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-                <h3 style="color: #2b3d63; margin-bottom: 15px;">Dependents</h3>
-                <table id="customSubformTable" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+            <div class="custom-subform-container">
+                <h3>Dependents</h3>
+                <table id="customSubformTable" class="subform-table">
                     <thead>
-                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; width: 40px;"></th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Dependent Name</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Relationship</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Date of Birth</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">SSN</th>
-                            <th style="padding: 10px; text-align: center; font-size: 13px; color: #616e88; width: 120px;">Student?</th>
+                        <tr>
+                            <th class="col-icon"></th>
+                            <th>Dependent Name</th>
+                            <th class="col-md">Relationship</th>
+                            <th class="col-sm">Date of Birth</th>
+                            <th class="col-sm">SSN</th>
+                            <th class="col-sm text-center">Student?</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Initial Row generated via JS -->
-                    </tbody>
+                        </tbody>
                 </table>
-                <button type="button" onclick="addDependentRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+                <button type="button" class="add-row-btn" onclick="addDependentRow()">+ Add Row</button>
             </div>
             
             <div class="btn-group">
-                <button type="button"  title="Back" onclick="prevStep()">Previous</button>
+                <button type="button" title="Back" onclick="prevStep()">Previous</button>
                 <button type="button" id="educationBtn" onclick="saveHouseholdDetails()">Save & Next</button>
             </div>
         </div>
 
-        <!-- STEP 3: EMPLOYMENT -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -176,12 +171,11 @@
             <div><input type="number" id="Net_Pay_Per_Paycheck" name="Net_Pay_Per_Paycheck" placeholder="$ ##,###,###" /></div>
             
             <div class="btn-group">
-                <button type="button"  title="Back" onclick="prevStep()">Previous</button>
+                <button type="button" title="Back" onclick="prevStep()">Previous</button>
                 <button type="button" id="basicBtn" onclick="saveEmploymentDetails()">Save & Next</button>
             </div>
         </div> 
 
-        <!-- STEP 4: INCOME -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -202,7 +196,6 @@
             </div>
         </div> 
 
-        <!-- STEP 5: EXPENSES -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -229,7 +222,6 @@
             </div>
         </div> 
 
-        <!-- STEP 6: BANK -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -237,26 +229,26 @@
             
             <label for="Do_you_have_bank_accounts">Do you have bank accounts?</label>
             <select name="Do_you_have_bank_accounts" id="Do_you_have_bank_accounts">
+                <option value="" disabled selected>-Select-</option>
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
             </select>
             
-            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-                <h3 style="color: #2b3d63; margin-bottom: 15px;">Bank Account Details</h3>
-                <table id="customSubformTableBANK" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+            <div class="custom-subform-container">
+                <h3>Bank Account Details</h3>
+                <table id="customSubformTableBANK" class="subform-table">
                     <thead>
-                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; width: 40px;"></th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Bank Name</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Bank Type</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Balance</th>
+                        <tr>
+                            <th class="col-icon"></th>
+                            <th>Bank Name</th>
+                            <th class="col-md">Bank Type</th>
+                            <th class="col-sm">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Initial Row generated via JS -->
-                    </tbody>
+                        </tbody>
                 </table>
-                <button type="button" onclick="addBankRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+                <button type="button" class="add-row-btn" onclick="addBankRow()">+ Add Row</button>
             </div>
             
             <div class="btn-group">
@@ -265,7 +257,6 @@
             </div>
         </div> 
 
-        <!-- STEP 7: ASSETS -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -273,35 +264,34 @@
             
             <label for="Do_you_own_a_vehicle">Do you own a vehicle?</label>
             <select name="Do_you_own_a_vehicle" id="Do_you_own_a_vehicle">
+                <option value="" disabled selected>-Select-</option>
                 <option value="Yes">Yes</option>
                 <option value="No">No</option>
             </select>
 
-            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-                <h3 style="color: #2b3d63; margin-bottom: 15px;">Vehicle details</h3>
-                <table id="customSubformTablevehicle" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 800px;">
+            <div class="custom-subform-container">
+                <h3>Vehicle details</h3>
+                <table id="customSubformTablevehicle" class="subform-table">
                     <thead>
-                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; width: 40px;"></th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Make</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 180px;">Model</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88; width: 140px;">Value</th>
+                        <tr>
+                            <th class="col-icon"></th>
+                            <th>Make</th>
+                            <th class="col-md">Model</th>
+                            <th class="col-sm">Value</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Initial Row generated via JS -->
-                    </tbody>
+                        </tbody>
                 </table>
-                <button type="button" onclick="addVehicleRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+                <button type="button" class="add-row-btn" onclick="addVehicleRow()">+ Add Row</button>
             </div>
             
             <div class="btn-group">
-                <button type="button"  title="Back" onclick="prevStep()">Previous</button>
+                <button type="button" title="Back" onclick="prevStep()">Previous</button>
                 <button type="button" id="basicBtn" onclick="saveVehicleDetails()">Save & Next</button>
             </div>
         </div>
 
-        <!-- STEP 8: DOCUMENTS -->
         <div class="form-step">
             <input type="text" id="Clients" placeholder="Client">
             <input type="text" id="Case" placeholder="Case">
@@ -309,46 +299,45 @@
             <input type="text" id="Personal_Master" placeholder="Personal_Master">
             <input type="text" id="Entity_Master" placeholder="Entity_Master">
             
-            <div class="custom-subform-container" style="max-width: 950px; font-family: sans-serif; overflow-x: auto;">
-                <h3 style="color: #2b3d63; margin-bottom: 15px;">Documents</h3>
-                <table id="customSubformTableDOCS" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; min-width: 3500px;">
+            <div class="custom-subform-container">
+                <h3>Documents</h3>
+                <table id="customSubformTableDOCS" class="subform-table docs-table">
                     <thead>
-                        <tr style="background-color: #f7fafc; border-bottom: 1px solid #c5cae4;">
-                            <th style="padding: 10px; width: 40px;"></th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Client</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Type</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Name</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document File</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Document Description</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Image Files</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Case</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Year</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Due Date</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Upload Date</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Uploaded By</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Workdrive URL</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">WorkDrive File ID</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned CPA</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Status</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Priority</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Staff Comments</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Record ID</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed By</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Review Comments</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Reviewed On</th>
-                            <th style="padding: 10px; text-align: left; font-size: 13px; color: #616e88;">Assigned Reviewer</th>
+                        <tr>
+                            <th class="col-icon"></th>
+                            <th>Client</th>
+                            <th>Document</th>
+                            <th>Document Type</th>
+                            <th>Document Name</th>
+                            <th>Document File</th>
+                            <th>Document Description</th>
+                            <th>Image Files</th>
+                            <th>Case</th>
+                            <th>Year</th>
+                            <th>Upload Due Date</th>
+                            <th>Upload Date</th>
+                            <th>Uploaded By</th>
+                            <th>Workdrive URL</th>
+                            <th>WorkDrive File ID</th>
+                            <th>Assigned CPA</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Staff Comments</th>
+                            <th>Record ID</th>
+                            <th>Reviewed By</th>
+                            <th>Review Comments</th>
+                            <th>Reviewed On</th>
+                            <th>Assigned Reviewer</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Initial Row generated via JS -->
-                    </tbody>
+                        </tbody>
                 </table>
-                <button type="button" onclick="addDocumentRow()" style="background-color: #f0f4f8; border: 1px dashed #4a90e2; color: #4a90e2; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">+ Add Row</button>
+                <button type="button" class="add-row-btn" onclick="addDocumentRow()">+ Add Row</button>
             </div>
             
             <div class="btn-group">
-                <button type="button"  title="Back" onclick="prevStep()">Previous</button>
+                <button type="button" title="Back" onclick="prevStep()">Previous</button>
                 <button type="button" id="basicBtn" onclick="saveDocumentsDetails()">Save & Next</button>
             </div>
         </div> 

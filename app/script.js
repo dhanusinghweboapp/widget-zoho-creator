@@ -34,6 +34,27 @@ document.addEventListener("DOMContentLoaded", function() {
     addBankRow();
     addVehicleRow();
     addDocumentRow();
+    const claimDependentsSelect = document.querySelector("#Do_you_claim_dependents");
+    if (claimDependentsSelect) {
+        claimDependentsSelect.addEventListener("change", toggleDependentSubform);
+        
+        // Run once on load to ensure correct state if prepopulated
+        toggleDependentSubform(); 
+    }
+    const claimDependentsSelectbank = document.querySelector("#Do_you_have_bank_accounts");
+    if (claimDependentsSelectbank) {
+        claimDependentsSelectbank.addEventListener("change", toggleDependentSubformBank);
+        
+        // Run once on load to ensure correct state if prepopulated
+        toggleDependentSubformBank(); 
+    }
+    const claimDependentsSelectasset = document.querySelector("#Do_you_own_a_vehicle");
+    if (claimDependentsSelectasset) {
+        claimDependentsSelectasset.addEventListener("change", toggleDependentSubformAsset);
+        
+        // Run once on load to ensure correct state if prepopulated
+        toggleDependentSubformAsset(); 
+    }
 });
 
 // ======================================
@@ -110,12 +131,102 @@ async function fetchCountries() {
         }
     });
 }
+// ======================================
+// UTILITIES
+// ======================================
+function formatZohoDate(dateString) {
+    if (!dateString) return "";
+    
+    // Split the standard YYYY-MM-DD string
+    const parts = dateString.split("-"); 
+    if (parts.length !== 3) return dateString; // Return as-is if it's not a standard date
 
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const year = parts[0];
+    const month = months[parseInt(parts[1], 10) - 1];
+    const day = parts[2];
+
+    return `${day}-${month}-${year}`;
+
+
+}
+function toggleDependentSubformAsset() {
+    const claimDependentsSelectasset = document.querySelector("#Do_you_own_a_vehicle");
+    const subformTableasset = document.querySelector("#customSubformTablevehicle");
+    const subformContainerasset = subformTableasset.closest(".custom-subform-container");
+    
+    // Assuming the table might be wrapped in a div, you can target the table directly.
+    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
+    if (claimDependentsSelectasset.value === "No") {
+        subformTableasset.style.display = "none";
+        subformContainerasset.style.display = "none";
+        
+        // Empty the subform and add one fresh blank row
+        const tbody = subformTableasset.querySelector("tbody");
+        tbody.innerHTML = ""; 
+        addDependentRow(); 
+    } else {
+        // Show the table when "Yes" or anything else is selected
+        subformTableasset.style.display = "table"; 
+        subformContainerasset.style.display = "table";
+    }
+}
+function toggleDependentSubform() {
+    const claimDependentsSelect = document.querySelector("#Do_you_claim_dependents");
+    const subformTable = document.querySelector("#customSubformTable");
+    const subformContainer = subformTable.closest(".custom-subform-container");
+    
+    // Assuming the table might be wrapped in a div, you can target the table directly.
+    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
+    if (claimDependentsSelect.value === "No") {
+        subformTable.style.display = "none";
+        subformContainer.style.display = "none";
+        
+        // Empty the subform and add one fresh blank row
+        const tbody = subformTable.querySelector("tbody");
+        tbody.innerHTML = ""; 
+        addDependentRow(); 
+    } else {
+        // Show the table when "Yes" or anything else is selected
+        subformTable.style.display = "table"; 
+        subformContainer.style.display = "table";
+    }
+}
+function toggleDependentSubformBank() {
+    const claimDependentsSelectbank = document.querySelector("#Do_you_have_bank_accounts");
+    const subformTablebank = document.querySelector("#customSubformTableBANK");
+    const subformContainerbank = subformTablebank.closest(".custom-subform-container");
+    
+    // Assuming the table might be wrapped in a div, you can target the table directly.
+    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
+   if (claimDependentsSelectbank.value === "No") {
+        subformTablebank.style.display = "none";
+        subformContainerbank.style.display = "none";
+        
+        // Empty the subform and add one fresh blank row
+        const tbody = subformTablebank.querySelector("tbody");
+        tbody.innerHTML = ""; 
+        addBankRow(); 
+    } else {
+        // Show the table when "Yes" or anything else is selected
+        subformTablebank.style.display = "table"; 
+        subformContainerbank.style.display = "table";
+    }
+}
 // ======================================
 // STEP 1: PERSONAL DETAILS
 // ======================================
 function savePersonalDetails() {
     const stepIndex = 0;
+    const homeAddress = {
+        address_line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
+        address_line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
+        district_city: formSteps[stepIndex].querySelector("#city-district").value,
+        state_province: formSteps[stepIndex].querySelector("#state-dropdown").value,
+        postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
+        country: formSteps[stepIndex].querySelector("#country-dropdown").value,
+    
+    };
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
@@ -125,16 +236,17 @@ function savePersonalDetails() {
             Social_Security_Number_SSN: formSteps[stepIndex].querySelector("#Social_Security_Number_SSN").value,
             Email_Address: formSteps[stepIndex].querySelector("#Email_Address").value,
             Primary_Phone_Number: formSteps[stepIndex].querySelector("#Primary_Phone_Number").value,
-            Date_of_birth: formSteps[stepIndex].querySelector("#Date_of_birth").value,
+            Date_of_birth: formatZohoDate(formSteps[stepIndex].querySelector("#Date_of_birth").value),
             Marital_Status: formSteps[stepIndex].querySelector("#Marital_Status").value,
             Spouse_Full_Name: formSteps[stepIndex].querySelector("#Spouse_Full_Name").value,
             Spouse_SSN: formSteps[stepIndex].querySelector("#Spouse_SSN").value,
-            Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
-            Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
-            City_District: formSteps[stepIndex].querySelector("#city-district").value,
-            State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
-            Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
-            Country: formSteps[stepIndex].querySelector("#country-dropdown").value
+            // Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
+            // Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
+            // City_District: formSteps[stepIndex].querySelector("#city-district").value,
+            // State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
+            // Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
+            // Country: formSteps[stepIndex].querySelector("#country-dropdown").value,
+            Home_address: homeAddress
         }
     };
 
@@ -157,6 +269,15 @@ function savePersonalDetails() {
 
 function updatePersonalDetails() {
     const stepIndex = 0;
+    const homeAddress = {
+        address_line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
+        address_line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
+        district_city: formSteps[stepIndex].querySelector("#city-district").value,
+        state_province: formSteps[stepIndex].querySelector("#state-dropdown").value,
+        postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
+        country: formSteps[stepIndex].querySelector("#country-dropdown").value,
+    
+    };
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
@@ -166,16 +287,17 @@ function updatePersonalDetails() {
             Social_Security_Number_SSN: formSteps[stepIndex].querySelector("#Social_Security_Number_SSN").value,
             Email_Address: formSteps[stepIndex].querySelector("#Email_Address").value,
             Primary_Phone_Number: formSteps[stepIndex].querySelector("#Primary_Phone_Number").value,
-            Date_of_birth: formSteps[stepIndex].querySelector("#Date_of_birth").value,
+            Date_of_birth: formatZohoDate(formSteps[stepIndex].querySelector("#Date_of_birth").value),
             Marital_Status: formSteps[stepIndex].querySelector("#Marital_Status").value,
             Spouse_Full_Name: formSteps[stepIndex].querySelector("#Spouse_Full_Name").value,
             Spouse_SSN: formSteps[stepIndex].querySelector("#Spouse_SSN").value,
-            Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
-            Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
-            City_District: formSteps[stepIndex].querySelector("#city-district").value,
-            State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
-            Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
-            Country: formSteps[stepIndex].querySelector("#country-dropdown").value
+            // Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
+            // Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
+            // City_District: formSteps[stepIndex].querySelector("#city-district").value,
+            // State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
+            // Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
+            // Country: formSteps[stepIndex].querySelector("#country-dropdown").value
+            Home_address: homeAddress
         }
     };
 
@@ -254,7 +376,7 @@ function serializeDependentsSubform() {
 
         const fullName = nameInput.value.trim();
         const relationship = row.querySelector(".dep-relationship").value;
-        const dob = row.querySelector(".dep-dob").value;
+        const dob = formatZohoDate(row.querySelector(".dep-dob").value);
         const ssn = row.querySelector(".dep-ssn").value.trim();
         const isStudentChecked = row.querySelector(".dep-student").checked;
 
@@ -279,14 +401,15 @@ function serializeDependentsSubform() {
 
 function saveHouseholdDetails() {
     const stepIndex = 1;
+    const claimsDependents = formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value;
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Number_of_people_in_household: formSteps[stepIndex].querySelector("#Number_of_people_in_household").value,
-            Do_you_claim_dependents: formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value,
-            Dependents: serializeDependentsSubform()
+            Do_you_claim_dependents: claimsDependents,
+            Dependents: claimsDependents === "Yes" ? serializeDependentsSubform() : []
         }
     };
 
@@ -307,14 +430,16 @@ function saveHouseholdDetails() {
 
 function updateHouseholdDetails() {
     const stepIndex = 1;
+        const claimsDependents = formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value;
+
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Number_of_people_in_household: formSteps[stepIndex].querySelector("#Number_of_people_in_household").value,
-            Do_you_claim_dependents: formSteps[stepIndex].querySelector("#Do_you_claim_dependents").value,
-            Dependents: serializeDependentsSubform()
+            Do_you_claim_dependents: claimsDependents,
+            Dependents: claimsDependents === "Yes" ? serializeDependentsSubform() : []
         }
     };
 
@@ -455,7 +580,7 @@ function saveExpensesDetails() {
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Monthly_Rent_or_Mortgage: formSteps[stepIndex].querySelector("#Monthly_Rent_or_Mortgage").value,
-            Utilities: formSteps[stepIndex].querySelector("#Utilities_total").value,
+            Utilities_total: formSteps[stepIndex].querySelector("#Utilities_total").value,
             Food_and_Household_Expenses: formSteps[stepIndex].querySelector("#Food_and_Household_Expenses").value,
             Medical_Expenses: formSteps[stepIndex].querySelector("#Medical_Expenses").value,
             Transportation_Expenses: formSteps[stepIndex].querySelector("#Transportation_Expenses").value
@@ -485,7 +610,7 @@ function updateExpensesDetails() {
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Monthly_Rent_or_Mortgage: formSteps[stepIndex].querySelector("#Monthly_Rent_or_Mortgage").value,
-            Utilities: formSteps[stepIndex].querySelector("#Utilities_total").value,
+            Utilities_total: formSteps[stepIndex].querySelector("#Utilities_total").value,
             Food_and_Household_Expenses: formSteps[stepIndex].querySelector("#Food_and_Household_Expenses").value,
             Medical_Expenses: formSteps[stepIndex].querySelector("#Medical_Expenses").value,
             Transportation_Expenses: formSteps[stepIndex].querySelector("#Transportation_Expenses").value
@@ -561,13 +686,14 @@ function serializeBankSubform() {
 
 function saveBankDetails() {
     const stepIndex = 5;
+    const dobank = formSteps[stepIndex].querySelector("#Do_you_have_bank_accounts").value;
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Do_you_have_bank_accounts: formSteps[stepIndex].querySelector("#Do_you_have_bank_accounts").value,
-            Bank_Account_Details: serializeBankSubform()
+            Do_you_have_bank_accounts: dobank,
+            Bank_Account_Details: dobank === "Yes" ? serializeBankSubform() : []
         }
     };
 
@@ -588,13 +714,14 @@ function saveBankDetails() {
 
 function updateBankDetails() {
     const stepIndex = 5;
+    const dobank = formSteps[stepIndex].querySelector("#Do_you_have_bank_accounts").value;
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Do_you_have_bank_accounts: formSteps[stepIndex].querySelector("#Do_you_have_bank_accounts").value,
-            Bank_Account_Details: serializeBankSubform()
+            Do_you_have_bank_accounts: dobank,
+            Bank_Account_Details: dobank === "Yes" ? serializeBankSubform() : []
         }
     };
 
@@ -649,9 +776,9 @@ function serializeVehicleSubform() {
 
         if (make) {
             dataArray.push({
-                "Vehicle_Make": make,
-                "Vehicle_Model": model,
-                "Vehicle_Value": value,
+                "Make": make,
+                "Model": model,
+                "Value": value,
                 "record::status": "added",
                 "row::key": `t::row_${index + 1}`
             });
@@ -662,13 +789,14 @@ function serializeVehicleSubform() {
 
 function saveVehicleDetails() {
     const stepIndex = 6;
+    const claimsDependentsasset = formSteps[stepIndex].querySelector("#Do_you_own_a_vehicle").value;
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Do_you_own_a_vehicle: formSteps[stepIndex].querySelector("#Do_you_own_a_vehicle").value,
-            Vehicle_details: serializeVehicleSubform()
+            Do_you_own_a_vehicle: claimsDependentsasset,
+            Vehicle_details: claimsDependentsasset === "Yes" ? serializeVehicleSubform() : []
         }
     };
 
@@ -689,13 +817,14 @@ function saveVehicleDetails() {
 
 function updateVehicleDetails() {
     const stepIndex = 6;
+    const claimsDependentsasset = formSteps[stepIndex].querySelector("#Do_you_own_a_vehicle").value;
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
             Case: formSteps[stepIndex].querySelector("#Case").value,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
-            Do_you_own_a_vehicle: formSteps[stepIndex].querySelector("#Do_you_own_a_vehicle").value,
-            Vehicle_details: serializeVehicleSubform()
+            Do_you_own_a_vehicle: claimsDependentsasset,
+            Vehicle_details: claimsDependentsasset === "Yes" ? serializeVehicleSubform() : []
         }
     };
 
@@ -834,7 +963,7 @@ function addDocumentRow() {
             </select>
         </td>
         <td style="padding: 8px 0;"><input type="date" class="sf-up-due" style="${inputStyle}"></td>
-        <td style="padding: 8px 0;"><input type="text" class="sf-up-date" placeholder="DD-MMM-YYYY" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;"><input type="date" class="sf-up-date" placeholder="DD-MMM-YYYY" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-up-by" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-url" placeholder="URL" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-workdrive-id" style="${inputStyle}"></td>
@@ -902,8 +1031,8 @@ function serializeDocumentSubform() {
             "Document_Desciption": getVal(row, ".sf-doc-desc"),
             "Case": getVal(row, ".sf-case"),
             "Year_field": getVal(row, ".sf-year"),
-            "Upload_Due_Date": getVal(row, ".sf-up-due"),
-            "Upload_Date": getVal(row, ".sf-up-date"), 
+            "Upload_Due_Date":formatZohoDate( getVal(row, ".sf-up-due")),
+            "Upload_Date": formatZohoDate(getVal(row, ".sf-up-date")), 
             "Uploaded_By": getVal(row, ".sf-up-by"),
             "Workdrive_URL": urlFieldObj,
             "WorkDrive_File_ID": getVal(row, ".sf-workdrive-id"),
@@ -914,7 +1043,7 @@ function serializeDocumentSubform() {
             "Record_ID": getVal(row, ".sf-record-id"),
             "Reviewed_By": getVal(row, ".sf-rev-by"),
             "Review_Comments": getVal(row, ".sf-rev-comm"),
-            "Reviewed_On": getVal(row, ".sf-rev-on"),
+            "Reviewed_On": formatZohoDate(getVal(row, ".sf-rev-on")),
             "Assigned_Reviewer": getVal(row, ".sf-assigned-rev")
         };
 
