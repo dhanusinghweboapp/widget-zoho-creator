@@ -21,6 +21,118 @@ let fileArrayOne = [];
 let fileArrayTwo = [];
 
 // ======================================
+// MASTER RECORD (A_Intake) SYNC LOGIC
+// ======================================
+let masterRecordId = null;
+
+function syncMasterRecord(stepNum, stepRecordId, isFinalSubmit = false) {
+    return new Promise((resolve) => {
+        // Retrieve A_Master ID from DOM if not already in memory
+        if (!masterRecordId) {
+            const masterInput = document.querySelector("#A_Master");
+            if (masterInput && masterInput.value) {
+                masterRecordId = masterInput.value;
+            }
+        }
+
+        // Dynamically compute completed steps array based on active IDs
+        let completed = [];
+        if (personalRecordId) completed.push("1");
+        if (householdRecordId) completed.push("2");
+        if (employmentRecordId) completed.push("3");
+        if (incomeRecordId) completed.push("4");
+        if (expensesRecordId) completed.push("5");
+        if (bankRecordId) completed.push("6");
+        if (vehicleRecordId) completed.push("7");
+        if (documentsRecordId || stepNum === 8) completed.push("8");
+        
+        // Ensure current step is tracked
+        if (!completed.includes(stepNum.toString())) {
+            completed.push(stepNum.toString());
+        }
+
+        const stepFieldMap = {
+            1: "A_Personal_Information",
+            2: "A_Household_Dependents",
+            3: "A_Employment",
+            4: "A_Income",
+            5: "A_Expenses",
+            6: "A_Bank_Accounts",
+            7: "A_Assets",
+            8: "Document_Upload_Wizard"
+        };
+
+        const currentDate = formatZohoDate(new Date().toISOString().split('T')[0]);
+
+        let masterData = {
+            data: {
+                "Current_Step": isFinalSubmit ? 8 : stepNum + 1,
+                "Completed_Steps": completed,
+                "Completed_Steps1": completed.length,
+                "Status": isFinalSubmit ? "Submitted" : "In Progress"
+            }
+        };
+
+        // Assign specific step record ID to the correct lookup field
+        if (stepFieldMap[stepNum] && stepRecordId) {
+            masterData.data[stepFieldMap[stepNum]] = stepRecordId.toString();
+        }
+
+        if (isFinalSubmit) {
+            masterData.data["Submitted_On"] = currentDate;
+            masterData.data["Status"] = "Submitted";
+        }
+
+        // Create Master Record if it's Step 1 and doesn't exist
+        if (stepNum === 1 && !masterRecordId) {
+            masterData.data["Started_On"] = currentDate;
+            
+            // Safe fetch of base field values for initialization
+            const clientInput = document.querySelector("#Clients");
+            const caseInput = document.querySelector("#Case");
+            const cpaInput = document.querySelector("#Assigned_CPA");
+            
+            masterData.data["Client"] = clientInput ? clientInput.value : "";
+            masterData.data["Case"] = caseInput ? caseInput.value : "";
+            masterData.data["Assigned_CPA"] = cpaInput ? cpaInput.value : "";
+
+            ZOHO.CREATOR.API.addRecord({
+                appName: APP_NAME,
+                formName: "A_Master",
+                data: masterData
+            }).then(function(response) {
+                if (response.code == 3000) {
+                    masterRecordId = response.data.ID;
+                    // Auto-fill all #A_Master hidden inputs across steps
+                    document.querySelectorAll("#A_Master").forEach(input => input.value = masterRecordId);
+                    resolve(masterRecordId);
+                } else {
+                    console.error("Master Record Creation Failed:", response);
+                    resolve(null);
+                }
+            });
+        } else if (masterRecordId) {
+            // Update Existing Master Record for all subsequent steps
+            ZOHO.CREATOR.API.updateRecord({
+                appName: APP_NAME,
+                reportName: "A_Intake",
+                id: masterRecordId,
+                data: masterData
+            }).then(function(response) {
+                if (response.code == 3000) {
+                    resolve(masterRecordId);
+                } else {
+                    console.error("Master Record Update Failed:", response);
+                    resolve(null);
+                }
+            });
+        } else {
+            resolve(null);
+        }
+    });
+}
+
+// ======================================
 // INIT
 // ======================================
 ZOHO.CREATOR.init().then(function () {
@@ -35,25 +147,20 @@ document.addEventListener("DOMContentLoaded", function() {
     addVehicleRow();
     addDocumentRow();
     updateNavButtons(currentStep);
+    
     const claimDependentsSelect = document.querySelector("#Do_you_claim_dependents");
     if (claimDependentsSelect) {
         claimDependentsSelect.addEventListener("change", toggleDependentSubform);
-        
-        // Run once on load to ensure correct state if prepopulated
         toggleDependentSubform(); 
     }
     const claimDependentsSelectbank = document.querySelector("#Do_you_have_bank_accounts");
     if (claimDependentsSelectbank) {
         claimDependentsSelectbank.addEventListener("change", toggleDependentSubformBank);
-        
-        // Run once on load to ensure correct state if prepopulated
         toggleDependentSubformBank(); 
     }
     const claimDependentsSelectasset = document.querySelector("#Do_you_own_a_vehicle");
     if (claimDependentsSelectasset) {
         claimDependentsSelectasset.addEventListener("change", toggleDependentSubformAsset);
-        
-        // Run once on load to ensure correct state if prepopulated
         toggleDependentSubformAsset(); 
     }
 });
@@ -65,8 +172,9 @@ document.addEventListener("DOMContentLoaded", function() {
 function nextStep() {
     let targetStep = currentStep + 1;
     if (targetStep > formSteps.length) targetStep = formSteps.length;
-    goToStep(targetStep); // Uses your existing validation!
+    goToStep(targetStep);
 }
+
 function showStep(step) {
     formSteps.forEach((form) => form.classList.remove("active"));
     steps.forEach((item) => item.classList.remove("active"));
@@ -102,15 +210,12 @@ function fetchCountries() {
     
     try {
         countryEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
-        
-        // Sort alphabetically just like you did before
         const sortedCountries = localCountryData.sort((a, b) => a.name.localeCompare(b.name));
 
         sortedCountries.forEach(country => {
             const opt = document.createElement('option');
             opt.value = country.name;
             opt.textContent = country.name;
-            // Store states in the dataset so the state dropdown still works
             opt.dataset.states = JSON.stringify(country.states);
             countryEl.appendChild(opt);
         });
@@ -120,7 +225,6 @@ function fetchCountries() {
         countryEl.innerHTML = '<option value="" disabled selected>Failed to load countries</option>';
     }
 
-    // Your existing state-dropdown listener stays exactly the same
     countryEl.addEventListener('change', (e) => {
         const selectedOption = countryEl.options[countryEl.selectedIndex];
         const states = JSON.parse(selectedOption.dataset.states || '[]');
@@ -140,37 +244,33 @@ function fetchCountries() {
         }
     });
 }
+
 // ======================================
 // UTILITIES
 // ======================================
 function updateNavButtons(step) {
-    // 1. Handle Mobile Top Nav Arrows
     const mobilePrev = document.getElementById('mobilePrevBtn');
     const mobileNext = document.getElementById('mobileNextBtn');
     
-    // Disable previous arrow if on step 1
     if (mobilePrev) {
         mobilePrev.disabled = (step === 1);
     }
-    
-    // Disable next arrow if on the last step
     if (mobileNext) {
         mobileNext.disabled = (step === formSteps.length);
     }
 
-    // 2. Handle Desktop Previous/Next buttons
     const desktopPrevs = document.querySelectorAll('button[onclick="prevStep()"]');
     const desktopNexts = document.querySelectorAll('button[onclick="nextStep()"]');
     
     desktopPrevs.forEach(btn => btn.disabled = (step === 1));
     desktopNexts.forEach(btn => btn.disabled = (step === formSteps.length));
 }
+
 function formatZohoDate(dateString) {
     if (!dateString) return "";
     
-    // Split the standard YYYY-MM-DD string
     const parts = dateString.split("-"); 
-    if (parts.length !== 3) return dateString; // Return as-is if it's not a standard date
+    if (parts.length !== 3) return dateString; 
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const year = parts[0];
@@ -178,72 +278,62 @@ function formatZohoDate(dateString) {
     const day = parts[2];
 
     return `${day}-${month}-${year}`;
-
-
 }
+
 function toggleDependentSubformAsset() {
     const claimDependentsSelectasset = document.querySelector("#Do_you_own_a_vehicle");
     const subformTableasset = document.querySelector("#customSubformTablevehicle");
     const subformContainerasset = subformTableasset.closest(".custom-subform-container");
     
-    // Assuming the table might be wrapped in a div, you can target the table directly.
-    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
     if (claimDependentsSelectasset.value === "No") {
         subformTableasset.style.display = "none";
         subformContainerasset.style.display = "none";
         
-        // Empty the subform and add one fresh blank row
         const tbody = subformTableasset.querySelector("tbody");
         tbody.innerHTML = ""; 
         addDependentRow(); 
     } else {
-        // Show the table when "Yes" or anything else is selected
         subformTableasset.style.display = "table"; 
         subformContainerasset.style.display = "table";
     }
 }
+
 function toggleDependentSubform() {
     const claimDependentsSelect = document.querySelector("#Do_you_claim_dependents");
     const subformTable = document.querySelector("#customSubformTable");
     const subformContainer = subformTable.closest(".custom-subform-container");
     
-    // Assuming the table might be wrapped in a div, you can target the table directly.
-    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
     if (claimDependentsSelect.value === "No") {
         subformTable.style.display = "none";
         subformContainer.style.display = "none";
         
-        // Empty the subform and add one fresh blank row
         const tbody = subformTable.querySelector("tbody");
         tbody.innerHTML = ""; 
         addDependentRow(); 
     } else {
-        // Show the table when "Yes" or anything else is selected
         subformTable.style.display = "table"; 
         subformContainer.style.display = "table";
     }
 }
+
 function toggleDependentSubformBank() {
     const claimDependentsSelectbank = document.querySelector("#Do_you_have_bank_accounts");
     const subformTablebank = document.querySelector("#customSubformTableBANK");
     const subformContainerbank = subformTablebank.closest(".custom-subform-container");
     
-    // Assuming the table might be wrapped in a div, you can target the table directly.
-    // If you have an "Add Row" button near the table, you may want to wrap both in a div with an ID and hide that div instead.
    if (claimDependentsSelectbank.value === "No") {
         subformTablebank.style.display = "none";
         subformContainerbank.style.display = "none";
         
-        // Empty the subform and add one fresh blank row
         const tbody = subformTablebank.querySelector("tbody");
         tbody.innerHTML = ""; 
         addBankRow(); 
     } else {
-        // Show the table when "Yes" or anything else is selected
         subformTablebank.style.display = "table"; 
         subformContainerbank.style.display = "table";
     }
 }
+
 // ======================================
 // STEP 1: PERSONAL DETAILS
 // ======================================
@@ -256,8 +346,8 @@ function savePersonalDetails() {
         state_province: formSteps[stepIndex].querySelector("#state-dropdown").value,
         postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
         country: formSteps[stepIndex].querySelector("#country-dropdown").value,
-    
     };
+    
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
@@ -271,12 +361,6 @@ function savePersonalDetails() {
             Marital_Status: formSteps[stepIndex].querySelector("#Marital_Status").value,
             Spouse_Full_Name: formSteps[stepIndex].querySelector("#Spouse_Full_Name").value,
             Spouse_SSN: formSteps[stepIndex].querySelector("#Spouse_SSN").value,
-            // Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
-            // Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
-            // City_District: formSteps[stepIndex].querySelector("#city-district").value,
-            // State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
-            // Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
-            // Country: formSteps[stepIndex].querySelector("#country-dropdown").value,
             Home_address: homeAddress
         }
     };
@@ -285,15 +369,17 @@ function savePersonalDetails() {
         appName: APP_NAME, formName: "A_Personal_Information", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Personal Details Saved");
             personalRecordId = response.data.ID;
             
-            const btn = formSteps[stepIndex].querySelector("#basicBtn");
-            btn.innerText = "Update & Next";
-            btn.onclick = updatePersonalDetails;
-            
-            steps[0].classList.add("completed");
-            showStep(2);
+            syncMasterRecord(1, personalRecordId).then(() => {
+                alert("Personal Details Saved");
+                const btn = formSteps[stepIndex].querySelector("#basicBtn");
+                btn.innerText = "Update & Next";
+                btn.onclick = updatePersonalDetails;
+                
+                steps[0].classList.add("completed");
+                showStep(2);
+            });
         }
     });
 }
@@ -307,8 +393,8 @@ function updatePersonalDetails() {
         state_province: formSteps[stepIndex].querySelector("#state-dropdown").value,
         postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
         country: formSteps[stepIndex].querySelector("#country-dropdown").value,
-    
     };
+    
     const formData = {
         data: {
             Clients: formSteps[stepIndex].querySelector("#Clients").value,
@@ -322,12 +408,6 @@ function updatePersonalDetails() {
             Marital_Status: formSteps[stepIndex].querySelector("#Marital_Status").value,
             Spouse_Full_Name: formSteps[stepIndex].querySelector("#Spouse_Full_Name").value,
             Spouse_SSN: formSteps[stepIndex].querySelector("#Spouse_SSN").value,
-            // Address_Line_1: formSteps[stepIndex].querySelector("#address-line-1").value,
-            // Address_Line_2: formSteps[stepIndex].querySelector("#address-line-2").value,
-            // City_District: formSteps[stepIndex].querySelector("#city-district").value,
-            // State_Province: formSteps[stepIndex].querySelector("#state-dropdown").value,
-            // Postal_Code: formSteps[stepIndex].querySelector("#postal-code").value,
-            // Country: formSteps[stepIndex].querySelector("#country-dropdown").value
             Home_address: homeAddress
         }
     };
@@ -336,8 +416,10 @@ function updatePersonalDetails() {
         appName: APP_NAME, reportName: "All_433_a_personal_Information", id: personalRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Personal Details Updated");
-            showStep(2);
+            syncMasterRecord(1, personalRecordId).then(() => {
+                alert("Personal Details Updated");
+                showStep(2);
+            });
         }
     });
 }
@@ -362,22 +444,7 @@ function addDependentRow() {
                 <option value="" disabled selected>-Select-</option>
                 <option value="Son">Son</option>
                 <option value="Daughter">Daughter</option>
-                <option value="Step Child">Step Child</option>
-                <option value="Eligible Foster Child">Eligible Foster Child</option>
-                <option value="Brother">Brother</option>
-                <option value="Sister">Sister</option>
-                <option value="Half Brother">Half Brother</option>
-                <option value="Half Sister">Half Sister</option>
-                <option value="Step Brother">Step Brother</option>
-                <option value="Step Sister">Step Sister</option>
-                <option value="Adopted Child">Adopted Child</option>
-                <option value="Mother">Mother</option>
-                <option value="Father">Father</option>
-                <option value="Grand Parent">Grand Parent</option>
-                <option value="Step Mother">Step Mother</option>
-                <option value="Step Father">Step Father</option>
-                <option value="In-law">In-law</option>
-            </select>
+                </select>
         </td>
         <td style="padding: 8px 0;">
             <input type="date" class="dep-dob" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; color: #333;">
@@ -448,13 +515,16 @@ function saveHouseholdDetails() {
         appName: APP_NAME, formName: "A_Household_Dependents", data: formData
     }).then(function(response) {
         if (response.code === 3000) {
-            alert("Household Details Saved");
             householdRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelector("#educationBtn");
-            btn.innerText = "Update & Next";
-            btn.onclick = updateHouseholdDetails;
-            steps[stepIndex].classList.add("completed");
-            showStep(3);
+            
+            syncMasterRecord(2, householdRecordId).then(() => {
+                alert("Household Details Saved");
+                const btn = formSteps[stepIndex].querySelector("#educationBtn");
+                btn.innerText = "Update & Next";
+                btn.onclick = updateHouseholdDetails;
+                steps[stepIndex].classList.add("completed");
+                showStep(3);
+            });
         }
     });
 }
@@ -478,8 +548,10 @@ function updateHouseholdDetails() {
         appName: APP_NAME, reportName: "A_Household_Dependents_Report", id: householdRecordId, data: formData
     }).then(function(response) {
         if (response.code === 3000) {
-            alert("Household Details Updated");
-            showStep(3);
+            syncMasterRecord(2, householdRecordId).then(() => {
+                alert("Household Details Updated");
+                showStep(3);
+            });
         }
     });
 }
@@ -507,15 +579,17 @@ function saveEmploymentDetails() {
         appName: APP_NAME, formName: "A_Employment", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Employment Details Saved");
             employmentRecordId = response.data.ID;
             
-            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child");
-            btn.innerText = "Update & Next";
-            btn.onclick = updateEmploymentDetails;
-            
-            steps[stepIndex].classList.add("completed");
-            showStep(4);
+            syncMasterRecord(3, employmentRecordId).then(() => {
+                alert("Employment Details Saved");
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child");
+                btn.innerText = "Update & Next";
+                btn.onclick = updateEmploymentDetails;
+                
+                steps[stepIndex].classList.add("completed");
+                showStep(4);
+            });
         }
     });
 }
@@ -540,8 +614,10 @@ function updateEmploymentDetails() {
         appName: APP_NAME, reportName: "A_Employment_Report", id: employmentRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Employment Details Updated");
-            showStep(4);
+            syncMasterRecord(3, employmentRecordId).then(() => {
+                alert("Employment Details Updated");
+                showStep(4);
+            });
         }
     });
 }
@@ -566,13 +642,16 @@ function saveIncomeDetails() {
         appName: APP_NAME, formName: "A_Income", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Income Details Saved");
             incomeRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
-            btn.innerText = "Update & Next";
-            btn.onclick = updateIncomeDetails;
-            steps[stepIndex].classList.add("completed");
-            showStep(5);
+            
+            syncMasterRecord(4, incomeRecordId).then(() => {
+                alert("Income Details Saved");
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
+                btn.innerText = "Update & Next";
+                btn.onclick = updateIncomeDetails;
+                steps[stepIndex].classList.add("completed");
+                showStep(5);
+            });
         }
     });
 }
@@ -594,8 +673,10 @@ function updateIncomeDetails() {
         appName: APP_NAME, reportName: "A_Income_Report", id: incomeRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Income Details Updated");
-            showStep(5);
+            syncMasterRecord(4, incomeRecordId).then(() => {
+                alert("Income Details Updated");
+                showStep(5);
+            });
         }
     });
 }
@@ -622,13 +703,16 @@ function saveExpensesDetails() {
         appName: APP_NAME, formName: "A_Expenses", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Expense Details Saved");
             expensesRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
-            btn.innerText = "Update & Next";
-            btn.onclick = updateExpensesDetails;
-            steps[stepIndex].classList.add("completed");
-            showStep(6);
+            
+            syncMasterRecord(5, expensesRecordId).then(() => {
+                alert("Expense Details Saved");
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
+                btn.innerText = "Update & Next";
+                btn.onclick = updateExpensesDetails;
+                steps[stepIndex].classList.add("completed");
+                showStep(6);
+            });
         }
     });
 }
@@ -652,8 +736,10 @@ function updateExpensesDetails() {
         appName: APP_NAME, reportName: "A_Expenses_Report", id: expensesRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Expense Details Updated");
-            showStep(6);
+            syncMasterRecord(5, expensesRecordId).then(() => {
+                alert("Expense Details Updated");
+                showStep(6);
+            });
         }
     });
 }
@@ -732,13 +818,16 @@ function saveBankDetails() {
         appName: APP_NAME, formName: "A_Bank_Accounts", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Bank Details Saved");
             bankRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
-            btn.innerText = "Update & Next";
-            btn.onclick = updateBankDetails;
-            steps[stepIndex].classList.add("completed");
-            showStep(7);
+            
+            syncMasterRecord(6, bankRecordId).then(() => {
+                alert("Bank Details Saved");
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
+                btn.innerText = "Update & Next";
+                btn.onclick = updateBankDetails;
+                steps[stepIndex].classList.add("completed");
+                showStep(7);
+            });
         }
     });
 }
@@ -760,8 +849,10 @@ function updateBankDetails() {
         appName: APP_NAME, reportName: "All_433_a_bank_Accounts", id: bankRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Bank Details Updated");
-            showStep(7);
+            syncMasterRecord(6, bankRecordId).then(() => {
+                alert("Bank Details Updated");
+                showStep(7);
+            });
         }
     });
 }
@@ -835,13 +926,16 @@ function saveVehicleDetails() {
         appName: APP_NAME, formName: "A_Assets", data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Vehicle Details Saved");
             vehicleRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
-            btn.innerText = "Update & Next";
-            btn.onclick = updateVehicleDetails;
-            steps[stepIndex].classList.add("completed");
-            showStep(8);
+            
+            syncMasterRecord(7, vehicleRecordId).then(() => {
+                alert("Vehicle Details Saved");
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
+                btn.innerText = "Update & Next";
+                btn.onclick = updateVehicleDetails;
+                steps[stepIndex].classList.add("completed");
+                showStep(8);
+            });
         }
     });
 }
@@ -863,8 +957,10 @@ function updateVehicleDetails() {
         appName: APP_NAME, reportName: "All_Assets", id: vehicleRecordId, data: formData
     }).then(function(response) {
         if (response.code == 3000) {
-            alert("Vehicle Details Updated");
-            showStep(8);
+            syncMasterRecord(7, vehicleRecordId).then(() => {
+                alert("Vehicle Details Updated");
+                showStep(8);
+            });
         }
     });
 }
@@ -942,7 +1038,6 @@ function confirmSubmit() {
 // STEP 8: DOCUMENTS DETAILS
 // ======================================
 
-// Intercept original functions to show the modal first
 function saveDocumentsDetails() {
     showSubmitModal('save');
 }
@@ -950,12 +1045,11 @@ function saveDocumentsDetails() {
 function updateDocumentsDetails() {
     showSubmitModal('update');
 }
+
 // =====================================
 // ROW GENERATION & FILE TRACKING
 // =====================================
 const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #F0E0E4; border-radius:6px; outline:none; box-sizing: border-box;';
-
-// Global object to track files by their unique row ID
 let subformFileTracker = {};
 
 function addDocumentRow() {
@@ -963,11 +1057,8 @@ function addDocumentRow() {
     const newRow = document.createElement("tr");
     newRow.className = "subform-row";
     
-    // 1. Generate a unique ID for this UI row
     const rowId = 'row_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     newRow.setAttribute("data-ui-row-id", rowId);
-    
-    // 2. Initialize tracking for this row
     subformFileTracker[rowId] = { typeOne: null, typeTwo: null };
 
     newRow.style.borderBottom = "1px solid #edf2f7";
@@ -1016,7 +1107,7 @@ function removeDocumentRow(button) {
     if (rows.length > 1) {
         const row = button.closest("tr");
         const rowId = row.getAttribute("data-ui-row-id");
-        delete subformFileTracker[rowId]; // Clean up memory
+        delete subformFileTracker[rowId]; 
         row.remove();
     }
 }
@@ -1032,9 +1123,6 @@ function handleRowFile(inputElement, type) {
     }
 }
 
-// =====================================
-// DATA SERIALIZATION
-// =====================================
 function getVal(row, selector) {
     const el = row.querySelector(selector);
     if (!el) return "";
@@ -1051,7 +1139,6 @@ function serializeDocumentSubform() {
         const rawUrl = getVal(row, ".sf-workdrive-url");
         const urlFieldObj = rawUrl ? JSON.stringify({ "Workdrive_URL": rawUrl, "zcurl": "", "zctarget": "new" }) : JSON.stringify({ "Workdrive_URL": "", "zcurl": "", "zctarget": "new" });
 
-        // Check if this row already exists in Zoho
         const zohoRowId = row.getAttribute("data-zoho-row-id");
         
         let rowPayload = {
@@ -1079,11 +1166,9 @@ function serializeDocumentSubform() {
         };
 
         if (zohoRowId) {
-            // It's an existing row
             rowPayload["id"] = zohoRowId;
             rowPayload["record::status"] = "updated";
         } else {
-            // It's a new row being added
             rowPayload["record::status"] = "added";
             rowPayload["row::key"] = `t::row_${index + 1}`;
         }
@@ -1092,6 +1177,7 @@ function serializeDocumentSubform() {
     });
     return dataArray;
 }
+
 // =====================================
 // SAVE & UPLOAD EXECUTION
 // =====================================
@@ -1118,17 +1204,18 @@ function executeSaveDocumentsDetails() {
             console.log("Parent Record Created. ID:", documentsRecordId);
 
             try {
-                // Fetch the newly created record to get Subform Row IDs
                 const recordDetails = await ZOHO.CREATOR.API.getRecordById({
                     appName: APP_NAME,
                     reportName: "All_Document_Upload_Wizards", 
                     id: documentsRecordId
                 });
-                    console.log(recordDetails);
+                console.log(recordDetails);
                 const subformRows = recordDetails.data.Documents; 
                 
-                // Trigger the upload process, passing the fetched rows
                 await uploadAllWizardFiles(subformRows);
+
+                // Run final master sync
+                await syncMasterRecord(8, documentsRecordId, true);
 
                 alert("Documents & Files Saved Successfully!");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
@@ -1146,6 +1233,7 @@ function executeSaveDocumentsDetails() {
         }
     });
 }
+
 function executeUpdateDocumentsDetails() {
     const stepIndex = 7;
     const formData = {
@@ -1169,7 +1257,6 @@ function executeUpdateDocumentsDetails() {
             console.log("Parent Record Updated.");
 
             try {
-                // Re-fetch the record to get IDs for any newly added rows
                 const recordDetails = await ZOHO.CREATOR.API.getRecordById({
                     appName: APP_NAME,
                     reportName: "All_Document_Upload_Wizards", 
@@ -1177,9 +1264,10 @@ function executeUpdateDocumentsDetails() {
                 });
                 
                 const subformRows = recordDetails.data.Documents; 
-                
-                // Trigger the upload process
                 await uploadAllWizardFiles(subformRows);
+                
+                // Run final master sync
+                await syncMasterRecord(8, documentsRecordId, true);
 
                 alert("Documents & Files Updated Successfully!");
             } catch (error) {
@@ -1200,43 +1288,38 @@ async function uploadAllWizardFiles(savedZohoRows) {
         let uiRowId = uiRows[i].getAttribute("data-ui-row-id");
         let filesToUpload = subformFileTracker[uiRowId];
         
-        // See if we already stored the Zoho ID, otherwise pull it from the fresh response
         let zohoSubformRowId = uiRows[i].getAttribute("data-zoho-row-id");
         
         if (!zohoSubformRowId && savedZohoRows[i]) {
             zohoSubformRowId = savedZohoRows[i].ID;
-            // Store it in the DOM for future updates
             uiRows[i].setAttribute("data-zoho-row-id", zohoSubformRowId); 
         }
 
         if (zohoSubformRowId && filesToUpload) {
-            // Loop and upload all files for typeOne (sf-doc-file)
             if (filesToUpload.typeOne && filesToUpload.typeOne.length > 0) {
                 for (let file of filesToUpload.typeOne) {
                     await uploadSingleFile("Document_File", file, zohoSubformRowId);
                 }
-                filesToUpload.typeOne = null; // Clear from memory to prevent re-upload
+                filesToUpload.typeOne = null; 
             }
             
-            // Loop and upload all files for typeTwo (sf-up-file1)
             if (filesToUpload.typeTwo && filesToUpload.typeTwo.length > 0) {
                 for (let file of filesToUpload.typeTwo) {
                     await uploadSingleFile("Upload_File1", file, zohoSubformRowId);
                 }
-                filesToUpload.typeTwo = null; // Clear from memory to prevent re-upload
+                filesToUpload.typeTwo = null; 
             }
         }
     }
 }
 
 function uploadSingleFile(fieldName, file, subformRowId) {
-    // The ID provided here is now properly the SUBFORM row ID, and syntax is fixed
     return ZOHO.CREATOR.API.uploadFile({
         appName: APP_NAME,
         reportName: "All_Document_Upload_Wizards",
         id: subformRowId, 
-        parentId:documentsRecordId,
-        fieldName: "Documents." +fieldName,
+        parentId: documentsRecordId,
+        fieldName: "Documents." + fieldName,
         file: file
     });
 }
