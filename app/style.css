@@ -220,11 +220,12 @@ input:focus, select:focus, textarea:focus {
    SUBFORMS / TABLES
    ====================================== */
 .custom-subform-container {
-    width: 100%;
-    max-width: 100%; /* Changed from 950px */
-    margin-top: 15px;
-    margin-bottom: 30px;
-    overflow-x: auto;
+    width: 100% !important;
+        max-width: calc(100vw - 40px) !important; /* Locks width to screen size minus margins */
+        overflow-x: auto !important; /* Forces the scrollbar to appear here */
+        -webkit-overflow-scrolling: touch !important; /* Enables smooth swipe-scrolling on iOS */
+        display: block !important;
+        padding-bottom: 15px !important; /* Gives room for the scrollbar */
 }
 .custom-subform-container h3 {
     color: #2b3d63;
@@ -281,9 +282,9 @@ td input, td select {
 
 /* Custom Add/Remove Buttons */
 .add-row-btn {
-    background-color: #f0f4f8;
-    border: 1px dashed #4a90e2;
-    color: #4a90e2;
+    background-color: #ffffff;
+    border: transparent;
+    color: #8b0000;
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
@@ -295,8 +296,8 @@ td input, td select {
 }
 
 .add-row-btn:hover {
-    text-decoration: underline;
-    background-color: #e2e8f0;
+    /* text-decoration: underline; */
+    background-color: #F0E0E4;
 }
 
 button[onclick^="remove"] {
@@ -370,7 +371,19 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
 ::-webkit-scrollbar-thumb:hover {
     background: #a0a8cc; 
 }
+button[onclick="nextStep()"] {
+ display: none;
+ }
+.progress-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+}
 
+.mobile-top-nav {
+    display: none; /* Hidden by default on Desktop */
+}
 /* ======================================
    MOBILE RESPONSIVE OVERRIDES (FORCE SWIPE)
    ====================================== */
@@ -384,51 +397,91 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
     }
 
     .progress-bar {
+        flex: 1;
+        width: 100% !important; 
+        margin-bottom: 0 !important;
+        padding-bottom: 15px !important;
+    }
+
+    /* Container for the mobile progress bar */
+    .progress-wrapper {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        background: #fff;
+        /* border: 2px solid #8b0000; Added to give it the defined bar look */
+        border-radius: 8px;
+        padding: 5px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+    }
+
+    /* Navigation Arrows */
+    .mobile-top-nav {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        background: #8b0000;
+        color: white;
+        border: none;
+        cursor: pointer;
+        height: 40px;
+        width: 40px;
+        border-radius: 4px;
+        font-size: 20px;
+        font-weight: bold;
+        flex-shrink: 0;
+        z-index: 20;
+    }
+
+    .mobile-top-nav:active {
+        background: #6a0000;
+    }
+
+    /* Hide all connecting lines */
+    .line {
+        display: none !important;
+    }
+
+    /* Hide all steps by default */
+    .step {
+        display: none !important;
+    }
+
+    /* Show ONLY the active step in the center */
+    .step.active {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important;        
-        overflow-x: auto !important;         
-        overflow-y: hidden !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        justify-content: flex-start !important; 
-        padding-bottom: 60px !important;     
-        margin-bottom: 30px !important;
-        padding-top: 10px !important;
-        -webkit-overflow-scrolling: touch !important; 
-        touch-action: pan-x !important;      
+        justify-content: center !important;
+        align-items: center !important;
+        flex: 1 !important;
+        width: auto !important;
+        min-width: unset !important;
+        max-width: unset !important;
+        margin-top: 20px;
+    }
+
+    .step.active span {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+
+    /* Puts the label next to the number instead of under it */
+    .step.active p {
+        position: static !important;
+        margin-left: 10px;
+        font-size: 16px !important;
+        color: #8b0000 !important;
+        font-weight: bold !important;
     }
 
     .progress-bar::-webkit-scrollbar {
-        height: 4px !important;
-        display: block !important;
-    }
-    
-    .progress-bar::-webkit-scrollbar-thumb {
-        background: #8b0000 !important;
-        border-radius: 4px !important;
-    }
-    
-    .progress-bar::-webkit-scrollbar-track {
-        background: #f1f1f1 !important;
+        display: none !important;
     }
 
-    .step {
-        flex: 0 0 70px !important;          
-        width: 70px !important;
-        min-width: 70px !important;
-        max-width: 70px !important;
-    }
-
-    .line {
-        flex: 0 0 80px !important;          
-        width: 80px !important;
-        min-width: 80px !important;
-        max-width: 80px !important;
-        height: 4px !important;
-        margin: 0 -5px !important;          
-    }
-
+    /* The rest of your mobile overrides below this remain unchanged */
     .form-step > label {
         display: block !important;
         width: 100% !important;
@@ -448,7 +501,7 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
 
     .form-step {
         position: relative !important;
-        padding-top: 65px !important;       
+        padding-top: 15px !important; /* Adjusted to prevent huge gap */
     }
 
     .btn-group, .form-step > div:last-child {
@@ -468,4 +521,11 @@ button[onclick^="save"]:hover, button[id$="Btn"]:hover {
         display: flex;
         flex-direction: column;
     }
+    /* Disabled state for navigation buttons */
+button:disabled,
+.mobile-top-nav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed !important;
+    pointer-events: none; /* Prevents hover effects and clicks */
+}
 }

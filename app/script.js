@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function() {
     addBankRow();
     addVehicleRow();
     addDocumentRow();
+    updateNavButtons(currentStep);
     const claimDependentsSelect = document.querySelector("#Do_you_claim_dependents");
     if (claimDependentsSelect) {
         claimDependentsSelect.addEventListener("change", toggleDependentSubform);
@@ -60,12 +61,19 @@ document.addEventListener("DOMContentLoaded", function() {
 // ======================================
 // NAVIGATION
 // ======================================
+
+function nextStep() {
+    let targetStep = currentStep + 1;
+    if (targetStep > formSteps.length) targetStep = formSteps.length;
+    goToStep(targetStep); // Uses your existing validation!
+}
 function showStep(step) {
     formSteps.forEach((form) => form.classList.remove("active"));
     steps.forEach((item) => item.classList.remove("active"));
     formSteps[step - 1].classList.add("active");
     steps[step - 1].classList.add("active");
     currentStep = step;
+    updateNavButtons(currentStep);
 }
 
 function goToStep(step) {
@@ -88,30 +96,31 @@ function prevStep() {
 // ======================================
 // EXTERNAL API (Countries & States)
 // ======================================
-async function fetchCountries() {
+function fetchCountries() {
     const countryEl = document.getElementById('country-dropdown');
     const stateEl = document.getElementById('state-dropdown');
     
     try {
-        const response = await fetch('https://countriesnow.space/api/v0.1/countries/states');
-        const data = await response.json();
+        countryEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
+        
+        // Sort alphabetically just like you did before
+        const sortedCountries = localCountryData.sort((a, b) => a.name.localeCompare(b.name));
 
-        if (!data.error) {
-            countryEl.innerHTML = '<option value="" disabled selected>-Select-</option>';
-            const sortedCountries = data.data.sort((a, b) => a.name.localeCompare(b.name));
-
-            sortedCountries.forEach(country => {
-                const opt = document.createElement('option');
-                opt.value = country.name;
-                opt.textContent = country.name;
-                opt.dataset.states = JSON.stringify(country.states);
-                countryEl.appendChild(opt);
-            });
-        }
+        sortedCountries.forEach(country => {
+            const opt = document.createElement('option');
+            opt.value = country.name;
+            opt.textContent = country.name;
+            // Store states in the dataset so the state dropdown still works
+            opt.dataset.states = JSON.stringify(country.states);
+            countryEl.appendChild(opt);
+        });
+        
     } catch (error) {
+        console.error("Error loading local countries:", error);
         countryEl.innerHTML = '<option value="" disabled selected>Failed to load countries</option>';
     }
 
+    // Your existing state-dropdown listener stays exactly the same
     countryEl.addEventListener('change', (e) => {
         const selectedOption = countryEl.options[countryEl.selectedIndex];
         const states = JSON.parse(selectedOption.dataset.states || '[]');
@@ -134,6 +143,28 @@ async function fetchCountries() {
 // ======================================
 // UTILITIES
 // ======================================
+function updateNavButtons(step) {
+    // 1. Handle Mobile Top Nav Arrows
+    const mobilePrev = document.getElementById('mobilePrevBtn');
+    const mobileNext = document.getElementById('mobileNextBtn');
+    
+    // Disable previous arrow if on step 1
+    if (mobilePrev) {
+        mobilePrev.disabled = (step === 1);
+    }
+    
+    // Disable next arrow if on the last step
+    if (mobileNext) {
+        mobileNext.disabled = (step === formSteps.length);
+    }
+
+    // 2. Handle Desktop Previous/Next buttons
+    const desktopPrevs = document.querySelectorAll('button[onclick="prevStep()"]');
+    const desktopNexts = document.querySelectorAll('button[onclick="nextStep()"]');
+    
+    desktopPrevs.forEach(btn => btn.disabled = (step === 1));
+    desktopNexts.forEach(btn => btn.disabled = (step === formSteps.length));
+}
 function formatZohoDate(dateString) {
     if (!dateString) return "";
     
@@ -355,7 +386,7 @@ function addDependentRow() {
             <input type="text" class="dep-ssn" placeholder="XXX-XX-XXXX" style="width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none;">
         </td>
         <td style="padding: 8px 0; text-align: center;">
-            <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #4a90e2; vertical-align: middle;">
+            <input type="checkbox" class="dep-student" style="width:20px; height:20px; cursor: pointer; accent-color: #8b0000; vertical-align: middle;">
         </td>
     `;
     tbody.appendChild(newRow);
@@ -479,7 +510,7 @@ function saveEmploymentDetails() {
             alert("Employment Details Saved");
             employmentRecordId = response.data.ID;
             
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1];
+            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child");
             btn.innerText = "Update & Next";
             btn.onclick = updateEmploymentDetails;
             
@@ -537,7 +568,7 @@ function saveIncomeDetails() {
         if (response.code == 3000) {
             alert("Income Details Saved");
             incomeRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
             btn.innerText = "Update & Next";
             btn.onclick = updateIncomeDetails;
             steps[stepIndex].classList.add("completed");
@@ -593,7 +624,7 @@ function saveExpensesDetails() {
         if (response.code == 3000) {
             alert("Expense Details Saved");
             expensesRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
             btn.innerText = "Update & Next";
             btn.onclick = updateExpensesDetails;
             steps[stepIndex].classList.add("completed");
@@ -703,7 +734,7 @@ function saveBankDetails() {
         if (response.code == 3000) {
             alert("Bank Details Saved");
             bankRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
             btn.innerText = "Update & Next";
             btn.onclick = updateBankDetails;
             steps[stepIndex].classList.add("completed");
@@ -806,7 +837,7 @@ function saveVehicleDetails() {
         if (response.code == 3000) {
             alert("Vehicle Details Saved");
             vehicleRecordId = response.data.ID;
-            const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+            const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
             btn.innerText = "Update & Next";
             btn.onclick = updateVehicleDetails;
             steps[stepIndex].classList.add("completed");
@@ -922,7 +953,7 @@ function updateDocumentsDetails() {
 // =====================================
 // ROW GENERATION & FILE TRACKING
 // =====================================
-const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #c5cae4; border-radius:6px; outline:none; box-sizing: border-box;';
+const inputStyle = 'width:92%; height:34px; padding:0 8px; border:1px solid #F0E0E4; border-radius:6px; outline:none; box-sizing: border-box;';
 
 // Global object to track files by their unique row ID
 let subformFileTracker = {};
@@ -1100,7 +1131,7 @@ function executeSaveDocumentsDetails() {
                 await uploadAllWizardFiles(subformRows);
 
                 alert("Documents & Files Saved Successfully!");
-                const btn = formSteps[stepIndex].querySelectorAll("button")[1]; 
+                const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
                 btn.innerText = "Update Final";
                 btn.onclick = updateDocumentsDetails; 
                 steps[stepIndex].classList.add("completed");
