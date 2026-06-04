@@ -299,6 +299,60 @@ td input, td select {
     /* text-decoration: underline; */
     background-color: #F0E0E4;
 }
+.toast {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #8b0000;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    transform: translateY(-100%);
+    animation: slideDown 0.3s ease forwards;
+}
+
+.toast.hide {
+    animation: slideUp 0.3s ease forwards;
+}
+.toast-close {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.toast-close:hover {
+    opacity: 0.8;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-100%);
+    }
+}
 
 button[onclick^="remove"] {
     background: transparent;
@@ -315,7 +369,7 @@ button[onclick^="remove"] {
 .btn-group {
     display: flex;
     justify-content: space-between; /* Pushes Previous/Next to edges */
-    max-width: 800px; /* Optional: limits how far apart the buttons get */
+    max-width: 100%; /* Optional: limits how far apart the buttons get */
     margin: 40px auto 20px auto; /* Centers the button group horizontally */
     gap: 20px; /* Ensures buttons don't touch on small screens */
 }

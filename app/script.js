@@ -24,6 +24,48 @@ let fileArrayTwo = [];
 // MASTER RECORD (A_Intake) SYNC LOGIC
 // ======================================
 let masterRecordId = null;
+function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close">&times;</button>
+    `;
+
+    document.body.appendChild(toast);
+
+    let timeout;
+
+    const removeToast = () => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    const startTimer = () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(removeToast, 2000);
+    };
+
+    const stopTimer = () => {
+        clearTimeout(timeout);
+    };
+
+    // Start auto-dismiss timer
+    startTimer();
+
+    // Pause timer on hover
+    toast.addEventListener("mouseenter", stopTimer);
+
+    // Resume timer on mouse leave
+    toast.addEventListener("mouseleave", startTimer);
+
+    // Close button
+    toast.querySelector(".toast-close").addEventListener("click", () => {
+        clearTimeout(timeout);
+        removeToast();
+    });
+}
 
 function syncMasterRecord(stepNum, stepRecordId, isFinalSubmit = false) {
     return new Promise((resolve) => {
@@ -115,7 +157,7 @@ function syncMasterRecord(stepNum, stepRecordId, isFinalSubmit = false) {
             // Update Existing Master Record for all subsequent steps
             ZOHO.CREATOR.API.updateRecord({
                 appName: APP_NAME,
-                reportName: "A_Intake",
+                reportName: "A_Intakes",
                 id: masterRecordId,
                 data: masterData
             }).then(function(response) {
@@ -186,13 +228,13 @@ function showStep(step) {
 
 function goToStep(step) {
     if (step == 1) { showStep(1); }
-    else if (step == 2) { personalRecordId ? showStep(2) : alert("Please complete Personal Details first"); }
-    else if (step == 3) { householdRecordId ? showStep(3) : alert("Please complete Household Details first"); }
-    else if (step == 4) { employmentRecordId ? showStep(4) : alert("Please complete Employment Details first"); }
-    else if (step == 5) { incomeRecordId ? showStep(5) : alert("Please complete Income Details first"); }
-    else if (step == 6) { expensesRecordId ? showStep(6) : alert("Please complete Expenses Details first"); }
-    else if (step == 7) { bankRecordId ? showStep(7) : alert("Please complete Bank Details first"); }
-    else if (step == 8) { vehicleRecordId ? showStep(8) : alert("Please complete Assets Details first"); }
+    else if (step == 2) { personalRecordId ? showStep(2) : showToast("Please complete Personal Details first"); }
+    else if (step == 3) { householdRecordId ? showStep(3) : showToast("Please complete Household Details first"); }
+    else if (step == 4) { employmentRecordId ? showStep(4) : showToast("Please complete Employment Details first"); }
+    else if (step == 5) { incomeRecordId ? showStep(5) : showToast("Please complete Income Details first"); }
+    else if (step == 6) { expensesRecordId ? showStep(6) : showToast("Please complete Expenses Details first"); }
+    else if (step == 7) { bankRecordId ? showStep(7) : showToast("Please complete Bank Details first"); }
+    else if (step == 8) { vehicleRecordId ? showStep(8) : showToast("Please complete Assets Details first"); }
 }
 
 function prevStep() {
@@ -372,7 +414,7 @@ function savePersonalDetails() {
             personalRecordId = response.data.ID;
             
             syncMasterRecord(1, personalRecordId).then(() => {
-                alert("Personal Details Saved");
+                showToast("Personal Details Saved");
                 const btn = formSteps[stepIndex].querySelector("#basicBtn");
                 btn.innerText = "Update & Next";
                 btn.onclick = updatePersonalDetails;
@@ -417,7 +459,7 @@ function updatePersonalDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(1, personalRecordId).then(() => {
-                alert("Personal Details Updated");
+                showToast("Personal Details Updated");
                 showStep(2);
             });
         }
@@ -518,7 +560,7 @@ function saveHouseholdDetails() {
             householdRecordId = response.data.ID;
             
             syncMasterRecord(2, householdRecordId).then(() => {
-                alert("Household Details Saved");
+                showToast("Household Details Saved");
                 const btn = formSteps[stepIndex].querySelector("#educationBtn");
                 btn.innerText = "Update & Next";
                 btn.onclick = updateHouseholdDetails;
@@ -549,7 +591,7 @@ function updateHouseholdDetails() {
     }).then(function(response) {
         if (response.code === 3000) {
             syncMasterRecord(2, householdRecordId).then(() => {
-                alert("Household Details Updated");
+                showToast("Household Details Updated");
                 showStep(3);
             });
         }
@@ -582,7 +624,7 @@ function saveEmploymentDetails() {
             employmentRecordId = response.data.ID;
             
             syncMasterRecord(3, employmentRecordId).then(() => {
-                alert("Employment Details Saved");
+                showToast("Employment Details Saved");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child");
                 btn.innerText = "Update & Next";
                 btn.onclick = updateEmploymentDetails;
@@ -615,7 +657,7 @@ function updateEmploymentDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(3, employmentRecordId).then(() => {
-                alert("Employment Details Updated");
+                showToast("Employment Details Updated");
                 showStep(4);
             });
         }
@@ -645,7 +687,7 @@ function saveIncomeDetails() {
             incomeRecordId = response.data.ID;
             
             syncMasterRecord(4, incomeRecordId).then(() => {
-                alert("Income Details Saved");
+                showToast("Income Details Saved");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
                 btn.innerText = "Update & Next";
                 btn.onclick = updateIncomeDetails;
@@ -674,7 +716,7 @@ function updateIncomeDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(4, incomeRecordId).then(() => {
-                alert("Income Details Updated");
+                showToast("Income Details Updated");
                 showStep(5);
             });
         }
@@ -706,7 +748,7 @@ function saveExpensesDetails() {
             expensesRecordId = response.data.ID;
             
             syncMasterRecord(5, expensesRecordId).then(() => {
-                alert("Expense Details Saved");
+                showToast("Expense Details Saved");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
                 btn.innerText = "Update & Next";
                 btn.onclick = updateExpensesDetails;
@@ -737,7 +779,7 @@ function updateExpensesDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(5, expensesRecordId).then(() => {
-                alert("Expense Details Updated");
+                showToast("Expense Details Updated");
                 showStep(6);
             });
         }
@@ -821,7 +863,7 @@ function saveBankDetails() {
             bankRecordId = response.data.ID;
             
             syncMasterRecord(6, bankRecordId).then(() => {
-                alert("Bank Details Saved");
+                showToast("Bank Details Saved");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
                 btn.innerText = "Update & Next";
                 btn.onclick = updateBankDetails;
@@ -850,7 +892,7 @@ function updateBankDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(6, bankRecordId).then(() => {
-                alert("Bank Details Updated");
+                showToast("Bank Details Updated");
                 showStep(7);
             });
         }
@@ -929,7 +971,7 @@ function saveVehicleDetails() {
             vehicleRecordId = response.data.ID;
             
             syncMasterRecord(7, vehicleRecordId).then(() => {
-                alert("Vehicle Details Saved");
+                showToast("Vehicle Details Saved");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
                 btn.innerText = "Update & Next";
                 btn.onclick = updateVehicleDetails;
@@ -958,7 +1000,7 @@ function updateVehicleDetails() {
     }).then(function(response) {
         if (response.code == 3000) {
             syncMasterRecord(7, vehicleRecordId).then(() => {
-                alert("Vehicle Details Updated");
+                showToast("Vehicle Details Updated");
                 showStep(8);
             });
         }
@@ -1027,10 +1069,9 @@ function closeSubmitModal() {
 function confirmSubmit() {
     closeSubmitModal();
     // Route to correct function based on what triggered the modal
-    if (currentSubmitAction === 'save') {
-        executeSaveDocumentsDetails();
-    } else if (currentSubmitAction === 'update') {
-        executeUpdateDocumentsDetails();
+    if (currentSubmitAction === 'submit') {
+       showToast("Request Submitted Successfully!");
+       window.location.reload();
     }
 }
 
@@ -1039,11 +1080,11 @@ function confirmSubmit() {
 // ======================================
 
 function saveDocumentsDetails() {
-    showSubmitModal('save');
+    executeSaveDocumentsDetails();
 }
 
 function updateDocumentsDetails() {
-    showSubmitModal('update');
+    executeUpdateDocumentsDetails();
 }
 
 // =====================================
@@ -1217,19 +1258,19 @@ function executeSaveDocumentsDetails() {
                 // Run final master sync
                 await syncMasterRecord(8, documentsRecordId, true);
 
-                alert("Documents & Files Saved Successfully!");
+                showToast("Documents & Files Saved Successfully!");
                 const btn = formSteps[stepIndex].querySelector(".btn-group button:last-child"); 
-                btn.innerText = "Update Final";
+                btn.innerText = "Update";
                 btn.onclick = updateDocumentsDetails; 
                 steps[stepIndex].classList.add("completed");
-
+                showSubmitModal('submit');
             } catch (error) {
                 console.error("Failed to fetch subform rows or upload files:", error);
-                alert("Text saved, but file uploads failed. Check console.");
+                showToast("Text saved, but file uploads failed. Check console.");
             }
         } else {
             console.error("Save Failed:", response.error);
-            alert("Failed to save documents.");
+            showToast("Failed to save documents. Fill Mandatory fields");
         }
     });
 }
@@ -1269,14 +1310,15 @@ function executeUpdateDocumentsDetails() {
                 // Run final master sync
                 await syncMasterRecord(8, documentsRecordId, true);
 
-                alert("Documents & Files Updated Successfully!");
+                showToast("Documents & Files Updated Successfully!");
+                showSubmitModal('submit');
             } catch (error) {
                 console.error("Failed to fetch subform rows or upload files:", error);
-                alert("Text updated, but file uploads failed. Check console.");
+                showToast("Text updated, but file uploads failed. Check console.");
             }
         } else {
             console.error("Update Failed:", response.error);
-            alert("Failed to update documents.");
+            showToast("Failed to update documents.");
         }
     });
 }
