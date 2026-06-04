@@ -331,7 +331,10 @@ td input, td select {
     line-height: 1;
     padding: 0;
 }
-
+#savebtnalignment{
+display: flex;
+  justify-content: flex-end;
+}
 .toast-close:hover {
     opacity: 0.8;
 }
@@ -581,5 +584,9 @@ button:disabled,
     opacity: 0.4;
     cursor: not-allowed !important;
     pointer-events: none; /* Prevents hover effects and clicks */
+}
+#savebtnalignment{
+display: block;
+  
 }
 }

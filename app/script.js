@@ -179,6 +179,38 @@ function syncMasterRecord(stepNum, stepRecordId, isFinalSubmit = false) {
 // ======================================
 ZOHO.CREATOR.init().then(function () {
     console.log("Widget Initialized");
+    try {
+        // Using getQueryParams() as per the standard Zoho Widget SDK
+        var queryParams = ZOHO.CREATOR.UTIL.getQueryParams();
+        console.log("Extracted Query Parameters:", queryParams);
+
+        if (queryParams) {
+            // 1. Populate Client ID
+            if (queryParams.clid) {
+                document.querySelectorAll("#Clients").forEach(input => input.value = queryParams.clid);
+            }
+
+            // 2. Populate Case ID 
+            const caseValue = queryParams.caseid || queryParams.cid;
+            if (caseValue) {
+                document.querySelectorAll("#Case").forEach(input => input.value = caseValue);
+            }
+
+            // 3. Populate Master ID and update global state
+            if (queryParams.masterid) {
+                document.querySelectorAll("#A_Master").forEach(input => input.value = queryParams.masterid);
+                masterRecordId = queryParams.masterid; 
+            }
+
+            // 4. Populate Full Legal Name
+            if (queryParams.Full_legal_name) {
+                const nameInput = document.querySelector("#Full_legal_name");
+                if (nameInput) nameInput.value = decodeURIComponent(queryParams.Full_legal_name);
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching parameters from Zoho API:", error);
+    }
 });
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -1107,14 +1139,14 @@ function addDocumentRow() {
         <td style="padding: 8px 0; text-align: center;">
             <button type="button" onclick="removeDocumentRow(this)" style="background:none; border:none; color:#e53e3e; cursor:pointer; font-weight:bold; font-size: 18px;">&times;</button>
         </td>
-        <td style="padding: 8px 0;"><input type="text" class="sf-client" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;display:none"><input type="text" class="sf-client" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-document" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-type" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-name" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="file" multiple class="sf-doc-file" style="${inputStyle}" onchange="handleRowFile(this, 'typeOne')"></td>
         <td style="padding: 8px 0;"><input type="text" class="sf-doc-desc" style="${inputStyle}"></td>
         <td style="padding: 8px 0;"><input type="file" multiple class="sf-up-file1" style="${inputStyle}" onchange="handleRowFile(this, 'typeTwo')"></td>
-        <td style="padding: 8px 0;"><input type="text" class="sf-case" style="${inputStyle}"></td>
+        <td style="padding: 8px 0;display:none"><input type="text" class="sf-case" style="${inputStyle}"></td>
         <td style="padding: 8px 0;">
             <select class="sf-year" style="${inputStyle}">
                 <option value="" disabled selected>- Year -</option>
@@ -1172,7 +1204,7 @@ function getVal(row, selector) {
     return val;
 }
 
-function serializeDocumentSubform() {
+function serializeDocumentSubform(Clientsval,Caseval) {
     const rows = document.querySelectorAll("#customSubformTableDOCS .subform-row");
     let dataArray = [];
 
@@ -1183,12 +1215,12 @@ function serializeDocumentSubform() {
         const zohoRowId = row.getAttribute("data-zoho-row-id");
         
         let rowPayload = {
-            "Client": getVal(row, ".sf-client"),
+            "Client": Clientsval,
             "Document": getVal(row, ".sf-document"),
             "Document_Type": getVal(row, ".sf-doc-type"),
             "Document_Name": getVal(row, ".sf-doc-name"),
             "Document_Desciption": getVal(row, ".sf-doc-desc"),
-            "Case": getVal(row, ".sf-case"),
+            "Case": Caseval,
             "Year_field": getVal(row, ".sf-year"),
             "Upload_Due_Date":formatZohoDate( getVal(row, ".sf-up-due")),
             "Upload_Date": formatZohoDate(getVal(row, ".sf-up-date")), 
@@ -1207,7 +1239,7 @@ function serializeDocumentSubform() {
         };
 
         if (zohoRowId) {
-            rowPayload["id"] = zohoRowId;
+            rowPayload["ID"] = zohoRowId;
             rowPayload["record::status"] = "updated";
         } else {
             rowPayload["record::status"] = "added";
@@ -1224,14 +1256,16 @@ function serializeDocumentSubform() {
 // =====================================
 function executeSaveDocumentsDetails() {
     const stepIndex = 7;
+    const Clientsval= formSteps[stepIndex].querySelector("#Clients").value;
+    const Caseval= formSteps[stepIndex].querySelector("#Case").value;
     const formData = {
         data: {
-            Clients: formSteps[stepIndex].querySelector("#Clients").value,
-            Case: formSteps[stepIndex].querySelector("#Case").value,
+            Clients: Clientsval,
+            Case: Caseval,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
             Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
-            Documents: serializeDocumentSubform() 
+            Documents: serializeDocumentSubform(Clientsval,Caseval) 
         }
     };
 
@@ -1277,14 +1311,16 @@ function executeSaveDocumentsDetails() {
 
 function executeUpdateDocumentsDetails() {
     const stepIndex = 7;
+    const Clientsval= formSteps[stepIndex].querySelector("#Clients").value;
+    const Caseval= formSteps[stepIndex].querySelector("#Case").value;
     const formData = {
         data: {
-            Clients: formSteps[stepIndex].querySelector("#Clients").value,
-            Case: formSteps[stepIndex].querySelector("#Case").value,
+            Clients: Clientsval,
+            Case: Caseval,
             A_Master: formSteps[stepIndex].querySelector("#A_Master").value,
             Personal_Master: formSteps[stepIndex].querySelector("#Personal_Master").value,
             Entity_Master: formSteps[stepIndex].querySelector("#Entity_Master").value,
-            Documents: serializeDocumentSubform() 
+            Documents: serializeDocumentSubform(Clientsval,Caseval) 
         }
     };
 
