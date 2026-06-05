@@ -359,16 +359,17 @@ function toggleDependentSubformAsset() {
     const subformTableasset = document.querySelector("#customSubformTablevehicle");
     const subformContainerasset = subformTableasset.closest(".custom-subform-container");
     
-    if (claimDependentsSelectasset.value === "No") {
-        subformTableasset.style.display = "none";
+    if (claimDependentsSelectasset.value === "Yes") {
+       subformTableasset.style.display = "block"; 
+        subformContainerasset.style.display = "block";
+    } else {
+        
+         subformTableasset.style.display = "none";
         subformContainerasset.style.display = "none";
         
         const tbody = subformTableasset.querySelector("tbody");
         tbody.innerHTML = ""; 
-        addDependentRow(); 
-    } else {
-        subformTableasset.style.display = "table"; 
-        subformContainerasset.style.display = "table";
+        addVehicleRow(); 
     }
 }
 
@@ -377,16 +378,16 @@ function toggleDependentSubform() {
     const subformTable = document.querySelector("#customSubformTable");
     const subformContainer = subformTable.closest(".custom-subform-container");
     
-    if (claimDependentsSelect.value === "No") {
+    if (claimDependentsSelect.value === "Yes") {
+        subformTable.style.display = "block"; 
+        subformContainer.style.display = "block";
+    } else {
         subformTable.style.display = "none";
         subformContainer.style.display = "none";
         
         const tbody = subformTable.querySelector("tbody");
         tbody.innerHTML = ""; 
         addDependentRow(); 
-    } else {
-        subformTable.style.display = "table"; 
-        subformContainer.style.display = "table";
     }
 }
 
@@ -395,16 +396,17 @@ function toggleDependentSubformBank() {
     const subformTablebank = document.querySelector("#customSubformTableBANK");
     const subformContainerbank = subformTablebank.closest(".custom-subform-container");
     
-   if (claimDependentsSelectbank.value === "No") {
+   if (claimDependentsSelectbank.value === "Yes") {
+        subformTablebank.style.display = "block"; 
+        subformContainerbank.style.display = "block";
+    } else {
+        
         subformTablebank.style.display = "none";
         subformContainerbank.style.display = "none";
         
         const tbody = subformTablebank.querySelector("tbody");
         tbody.innerHTML = ""; 
         addBankRow(); 
-    } else {
-        subformTablebank.style.display = "table"; 
-        subformContainerbank.style.display = "table";
     }
 }
 
@@ -1239,8 +1241,8 @@ function serializeDocumentSubform(Clientsval,Caseval) {
         };
 
         if (zohoRowId) {
-            rowPayload["ID"] = zohoRowId;
-            rowPayload["record::status"] = "updated";
+            rowPayload["id"] = zohoRowId;
+            rowPayload["record::status"] = "added";
         } else {
             rowPayload["record::status"] = "added";
             rowPayload["row::key"] = `t::row_${index + 1}`;
@@ -1366,7 +1368,7 @@ async function uploadAllWizardFiles(savedZohoRows) {
         let uiRowId = uiRows[i].getAttribute("data-ui-row-id");
         let filesToUpload = subformFileTracker[uiRowId];
         
-        let zohoSubformRowId = uiRows[i].getAttribute("data-zoho-row-id");
+        let zohoSubformRowId = null;
         
         if (!zohoSubformRowId && savedZohoRows[i]) {
             zohoSubformRowId = savedZohoRows[i].ID;

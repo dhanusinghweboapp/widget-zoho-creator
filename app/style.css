@@ -224,7 +224,7 @@ input:focus, select:focus, textarea:focus {
         max-width: calc(100vw - 40px) !important; /* Locks width to screen size minus margins */
         overflow-x: auto !important; /* Forces the scrollbar to appear here */
         -webkit-overflow-scrolling: touch !important; /* Enables smooth swipe-scrolling on iOS */
-        display: block !important;
+        /* display: block !important; */
         padding-bottom: 15px !important; /* Gives room for the scrollbar */
 }
 .custom-subform-container h3 {
