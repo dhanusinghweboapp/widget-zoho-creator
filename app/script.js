@@ -266,7 +266,7 @@ function goToStep(step) {
     else if (step == 5) { incomeRecordId ? showStep(5) : showToast("Please complete Income Details first"); }
     else if (step == 6) { expensesRecordId ? showStep(6) : showToast("Please complete Expenses Details first"); }
     else if (step == 7) { bankRecordId ? showStep(7) : showToast("Please complete Bank Details first"); }
-    else if (step == 8) { vehicleRecordId ? showStep(8) : showToast("Please complete Assets Details first"); }
+    else if (step == 8) { vehicleRecordId ? loadStep8Documents() : showToast("Please complete Assets Details first"); }
 }
 
 function prevStep() {
@@ -520,6 +520,22 @@ function addDependentRow() {
                 <option value="" disabled selected>-Select-</option>
                 <option value="Son">Son</option>
                 <option value="Daughter">Daughter</option>
+                <option value="Step Child">Step Child</option>
+                <option value="Eligible Foster Child">Eligible Foster Child</option>
+                <option value="Brother">Brother</option>
+                <option value="Sister">Sister</option>
+                <option value="Half Brother">Half Brother</option>
+                <option value="Half Sister">Half Sister</option>
+                <option value="Step Brother">Step Brother</option>
+                <option value="Step Sister">Step Sister</option>
+                <option value="Adopted Child">Adopted Child</option>
+                <option value="Mother">Mother</option>
+                <option value="Father">Father</option>
+                <option value="Grand Parent">Grand Parent</option>
+                <option value="Step Mother">Step Mother</option>
+                <option value="Step Father">Step Father</option>
+                <option value="In-law">In-law</option>
+                <option value="Other">Other</option>
                 </select>
         </td>
         <td style="padding: 8px 0;">
@@ -1010,7 +1026,7 @@ function saveVehicleDetails() {
                 btn.innerText = "Update & Next";
                 btn.onclick = updateVehicleDetails;
                 steps[stepIndex].classList.add("completed");
-                showStep(8);
+                loadStep8Documents();
             });
         }
     });
@@ -1035,7 +1051,7 @@ function updateVehicleDetails() {
         if (response.code == 3000) {
             syncMasterRecord(7, vehicleRecordId).then(() => {
                 showToast("Vehicle Details Updated");
-                showStep(8);
+                loadStep8Documents();
             });
         }
     });
@@ -1108,7 +1124,99 @@ function confirmSubmit() {
        window.location.reload();
     }
 }
+// Global flag to track if checklist items have already been fetched
+let isStep8Loaded = false;
 
+function loadStep8Documents() {
+    if (isStep8Loaded) {
+        showStep(8);
+        return;
+    }
+
+    const caseId = document.querySelector("#Case").value;
+
+    if (!caseId) {
+        console.warn("No Case ID found. Proceeding to Step 8 without prefilling.");
+        showStep(8);
+        return;
+    }
+
+    // Call 1: Fetch the specific Case record to get its Request Type
+    var caseConfig = {
+        appName: APP_NAME,          // Changed to camelCase
+        reportName: "All_Requests", // Changed to camelCase
+        criteria: `(Case == ${caseId})`
+    };
+    console.log(caseConfig);
+    ZOHO.CREATOR.API.getAllRecords(caseConfig).then(function (caseResponse) {
+        console.log("Case Record Fetched:", caseResponse);
+        
+        // Extract the request type. 
+        // Ensure "Request_Type" exactly matches the field link name in your All_Requests report
+        const requestType = caseResponse.data[0].Request_Type; 
+
+        if (!requestType) {
+            console.warn("No Request Type found on this Case. Proceeding with an empty row.");
+            addDocumentRow();
+            isStep8Loaded = true;
+            showStep(8);
+            return Promise.reject("NO_REQUEST_TYPE"); // Stop the chain gracefully
+        }
+
+        // Call 2: Fetch the checklist items based on the extracted Request Type
+        var checklistConfig = {
+            appName: APP_NAME,                   // Changed to camelCase
+            reportName: "All_Document_Checklist_Items", // Changed to camelCase
+            criteria: `(Case_Type == "${requestType}")` 
+        };
+
+        // Return the promise using getAllRecords (v1 syntax)
+        return ZOHO.CREATOR.API.getAllRecords(checklistConfig);
+
+    }).then(function (checklistResponse) {
+        console.log("Fetched Checklist Items:", checklistResponse);
+        
+        const tbody = document.querySelector("#customSubformTableDOCS tbody");
+        
+        // Clear the default empty row
+        tbody.innerHTML = ""; 
+        
+        if (checklistResponse && checklistResponse.data && checklistResponse.data.length > 0) {
+            checklistResponse.data.forEach(function (record) {
+                // Generate a new row 
+                addDocumentRow(); 
+                
+                // Target the newly inserted row
+                const rows = tbody.querySelectorAll(".subform-row");
+                const newRow = rows[rows.length - 1];
+                
+                // Map the fetched data to the UI inputs
+                const docInput = newRow.querySelector(".sf-document");
+                const docTypeInput = newRow.querySelector(".sf-doc-type");
+                
+                if (docInput) docInput.value = record.Document_Name || "";
+                if (docTypeInput) docTypeInput.value = record.Document_Type || "";
+            });
+        } else {
+            // Fallback: If no items match, add one empty row
+            addDocumentRow();
+        }
+
+        isStep8Loaded = true;
+        showStep(8);
+
+    }).catch(function (error) {
+        if (error !== "NO_REQUEST_TYPE") {
+            console.error("Error fetching data for Step 8:", error);
+            // Ensure step 8 has at least one row if the API calls fail
+            const tbody = document.querySelector("#customSubformTableDOCS tbody");
+            if (tbody && tbody.querySelectorAll(".subform-row").length === 0) {
+                addDocumentRow();
+            }
+            showStep(8);
+        }
+    });
+}
 // ======================================
 // STEP 8: DOCUMENTS DETAILS
 // ======================================
