@@ -197,9 +197,70 @@ ZOHO.CREATOR.init().then(function () {
             }
 
             // 3. Populate Master ID and update global state
-            if (queryParams.masterid) {
-                document.querySelectorAll("#A_Master").forEach(input => input.value = queryParams.masterid);
+           if (queryParams.masterid) {
                 masterRecordId = queryParams.masterid; 
+                document.querySelectorAll("#A_Master").forEach(input => input.value = masterRecordId);
+                
+                // Fetch the existing Master Record to resume progress
+                ZOHO.CREATOR.API.getRecordById({
+                    appName: APP_NAME,
+                    reportName: "A_Intakes", // Ensure this report matches your A_Master form
+                    id: masterRecordId
+                }).then(function(response) {
+                    if (response.code === 3000) {
+                        const masterData = response.data;
+
+                        // Zoho lookup fields return objects {ID: "...", display_value: "..."}. We need just the ID.
+                        const safeGetId = (field) => field && field.ID ? field.ID : (typeof field === 'string' ? field : null);
+
+                        // Restore Record IDs into memory
+                        personalRecordId = safeGetId(masterData.A_Personal_Information);
+                        householdRecordId = safeGetId(masterData.A_Household_Dependents);
+                        employmentRecordId = safeGetId(masterData.A_Employment);
+                        incomeRecordId = safeGetId(masterData.A_Income);
+                        expensesRecordId = safeGetId(masterData.A_Expenses);
+                        bankRecordId = safeGetId(masterData.A_Bank_Accounts);
+                        vehicleRecordId = safeGetId(masterData.A_Assets);
+                        documentsRecordId = safeGetId(masterData.Document_Upload_Wizard);
+                        prefillCompletedSteps();
+                        // Determine which step to resume
+                        let resumeStep = parseInt(masterData.Current_Step, 10);
+                        if (isNaN(resumeStep) || resumeStep < 1) resumeStep = 1;
+
+                        // Mark previous steps as completed and swap Save buttons for Update buttons
+                        const stepConfig = [
+                            { id: personalRecordId, selector: "#basicBtn", fn: updatePersonalDetails },
+                            { id: householdRecordId, selector: "#educationBtn", fn: updateHouseholdDetails },
+                            { id: employmentRecordId, selector: ".btn-group button:last-child", fn: updateEmploymentDetails },
+                            { id: incomeRecordId, selector: ".btn-group button:last-child", fn: updateIncomeDetails },
+                            { id: expensesRecordId, selector: ".btn-group button:last-child", fn: updateExpensesDetails },
+                            { id: bankRecordId, selector: ".btn-group button:last-child", fn: updateBankDetails },
+                            { id: vehicleRecordId, selector: ".btn-group button:last-child", fn: updateVehicleDetails }
+                        ];
+
+                        for (let i = 0; i < resumeStep - 1; i++) {
+                            if (steps[i]) steps[i].classList.add("completed");
+                            
+                            if (i < stepConfig.length && stepConfig[i].id) {
+                                const stepEl = formSteps[i];
+                                const btn = stepEl.querySelector(stepConfig[i].selector);
+                                if (btn) {
+                                    btn.innerText = "Update & Next";
+                                    btn.onclick = stepConfig[i].fn;
+                                }
+                            }
+                        }
+
+                        // Jump to the current step visually
+                        if (resumeStep === 8) {
+                            loadStep8Documents();
+                        } else {
+                            showStep(resumeStep);
+                        }
+                    } else {
+                        console.error("Failed to fetch Master Record:", response);
+                    }
+                }).catch(err => console.error("API Error fetching Master Record:", err));
             }
 
             // 4. Populate Full Legal Name
@@ -317,6 +378,220 @@ function fetchCountries() {
             stateEl.innerHTML = '<option value="" disabled selected>N/A (No states found)</option>';
         }
     });
+}
+// ======================================
+// PREFILL EXISTING DATA
+// ======================================
+function prefillCompletedSteps() {
+    
+    // STEP 1: Personal Details
+    if (personalRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "All_433_a_personal_Information", id: personalRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[0]; // Step 1 container
+                
+                if(step.querySelector("#Full_legal_name")) step.querySelector("#Full_legal_name").value = d.Full_legal_name || "";
+                if(step.querySelector("#Social_Security_Number_SSN")) step.querySelector("#Social_Security_Number_SSN").value = d.Social_Security_Number_SSN || "";
+                if(step.querySelector("#Email_Address")) step.querySelector("#Email_Address").value = d.Email_Address || "";
+                if(step.querySelector("#Primary_Phone_Number")) step.querySelector("#Primary_Phone_Number").value = d.Primary_Phone_Number || "";
+                
+                // Note: Ensure the Date format from Zoho matches what your input type="date" expects (usually YYYY-MM-DD)
+                if(step.querySelector("#Date_of_birth")) step.querySelector("#Date_of_birth").value = d.Date_of_birth || ""; 
+                if(step.querySelector("#Marital_Status")) step.querySelector("#Marital_Status").value = d.Marital_Status || "";
+                if(step.querySelector("#Spouse_Full_Name")) step.querySelector("#Spouse_Full_Name").value = d.Spouse_Full_Name || "";
+                if(step.querySelector("#Spouse_SSN")) step.querySelector("#Spouse_SSN").value = d.Spouse_SSN || "";
+                
+                // Handle Home Address map if your API returns it as a composite object
+                if (d.Home_address) {
+                    if(step.querySelector("#address-line-1")) step.querySelector("#address-line-1").value = d.Home_address.address_line_1 || "";
+                    if(step.querySelector("#address-line-2")) step.querySelector("#address-line-2").value = d.Home_address.address_line_2 || "";
+                    if(step.querySelector("#city-district")) step.querySelector("#city-district").value = d.Home_address.district_city || "";
+                    if(step.querySelector("#postal-code")) step.querySelector("#postal-code").value = d.Home_address.postal_Code || "";
+                    
+                    // You might need to trigger change events if your country/state dropdowns depend on them
+                    if(step.querySelector("#country-dropdown")) {
+                        step.querySelector("#country-dropdown").value = d.Home_address.country || "";
+                        step.querySelector("#country-dropdown").dispatchEvent(new Event('change'));
+                    }
+                    setTimeout(() => {
+                        if(step.querySelector("#state-dropdown")) step.querySelector("#state-dropdown").value = d.Home_address.state_province || "";
+                    }, 100); // Small timeout to let country states render
+                }
+            }
+        });
+    }
+
+    // STEP 2: Household & Dependents (Example of Subform Data Binding)
+    if (householdRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "A_Household_Dependents_Report", id: householdRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[1];
+                
+                if(step.querySelector("#Number_of_people_in_household")) step.querySelector("#Number_of_people_in_household").value = d.Number_of_people_in_household || "";
+                
+                const claimSelect = step.querySelector("#Do_you_claim_dependents");
+                if (claimSelect) {
+                    claimSelect.value = d.Do_you_claim_dependents || "No";
+                    claimSelect.dispatchEvent(new Event('change')); // Triggers toggleDependentSubform()
+                }
+
+                // If they have dependents, clear the default empty row and render the saved ones
+                if (d.Do_you_claim_dependents === "Yes" && d.Dependents && d.Dependents.length > 0) {
+                    const tbody = document.querySelector("#customSubformTable tbody");
+                    tbody.innerHTML = ""; // Clear default row
+                    
+                    d.Dependents.forEach(dep => {
+                        addDependentRow(); // Create a new UI row
+                        
+                        // Target the newly inserted row
+                        const rows = tbody.querySelectorAll(".subform-row");
+                        const newRow = rows[rows.length - 1];
+                        
+                        // Parse Dependent_Name composite field if necessary
+                        let fullName = "";
+                        if(dep.Dependent_Name) {
+                           fullName = `${dep.Dependent_Name.first_name || ""} ${dep.Dependent_Name.last_name || ""}`.trim();
+                        }
+
+                        if(newRow.querySelector(".dep-name")) newRow.querySelector(".dep-name").value = fullName;
+                        if(newRow.querySelector(".dep-relationship")) newRow.querySelector(".dep-relationship").value = dep.Dependent_Relationship_to_you || "";
+                        if(newRow.querySelector(".dep-dob")) newRow.querySelector(".dep-dob").value = dep.Date_of_Birth || "";
+                        if(newRow.querySelector(".dep-ssn")) newRow.querySelector(".dep-ssn").value = dep.SSN || "";
+                        if(newRow.querySelector(".dep-student")) newRow.querySelector(".dep-student").checked = (dep.Is_dependent_full_time_Student === "true" || dep.Is_dependent_full_time_Student === true);
+                    });
+                }
+            }
+        });
+    }
+
+    // STEP 3: Employment
+    if (employmentRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "A_Employment_Report", id: employmentRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[2];
+                if(step.querySelector("#Employment_Status")) step.querySelector("#Employment_Status").value = d.Employment_Status || "";
+                if(step.querySelector("#Employer_Name")) step.querySelector("#Employer_Name").value = d.Employer_Name || "";
+                if(step.querySelector("#Job_Title")) step.querySelector("#Job_Title").value = d.Job_Title || "";
+                if(step.querySelector("#Pay_Frequency")) step.querySelector("#Pay_Frequency").value = d.Pay_Frequency || "";
+                if(step.querySelector("#Gross_Pay_Per_Paycheck")) step.querySelector("#Gross_Pay_Per_Paycheck").value = d.Gross_Pay_Per_Paycheck || "";
+                if(step.querySelector("#Net_Pay_Per_Paycheck")) step.querySelector("#Net_Pay_Per_Paycheck").value = d.Net_Pay_Per_Paycheck || "";
+            }
+        });
+    }
+
+    // STEP 4: Income
+    if (incomeRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "A_Income_Report", id: incomeRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[3];
+                if(step.querySelector("#Monthly_Wage_Income")) step.querySelector("#Monthly_Wage_Income").value = d.Monthly_Wage_Income || "";
+                if(step.querySelector("#Self_Employment_Income")) step.querySelector("#Self_Employment_Income").value = d.Self_Employment_Income || "";
+                if(step.querySelector("#Other_Income_Sources")) step.querySelector("#Other_Income_Sources").value = d.Other_Income_Sources || "";
+            }
+        });
+    }
+
+    // STEP 5: Expenses
+    if (expensesRecordId) {
+         ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "A_Expenses_Report", id: expensesRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[4];
+                if(step.querySelector("#Monthly_Rent_or_Mortgage")) step.querySelector("#Monthly_Rent_or_Mortgage").value = d.Monthly_Rent_or_Mortgage || "";
+                if(step.querySelector("#Utilities_total")) step.querySelector("#Utilities_total").value = d.Utilities_total || "";
+                if(step.querySelector("#Food_and_Household_Expenses")) step.querySelector("#Food_and_Household_Expenses").value = d.Food_and_Household_Expenses || "";
+                if(step.querySelector("#Medical_Expenses")) step.querySelector("#Medical_Expenses").value = d.Medical_Expenses || "";
+                if(step.querySelector("#Transportation_Expenses")) step.querySelector("#Transportation_Expenses").value = d.Transportation_Expenses || "";
+            }
+        });
+    }
+    // STEP 6: Bank Details
+    if (bankRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "All_433_a_bank_Accounts", id: bankRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[5]; // Step 6 container
+                
+                const bankSelect = step.querySelector("#Do_you_have_bank_accounts");
+                if (bankSelect) {
+                    bankSelect.value = d.Do_you_have_bank_accounts || "No";
+                    bankSelect.dispatchEvent(new Event('change')); // Triggers toggleDependentSubformBank()
+                }
+
+                // If they have bank accounts, clear the default empty row and render the saved ones
+                if (d.Do_you_have_bank_accounts === "Yes" && d.Bank_Account_Details && d.Bank_Account_Details.length > 0) {
+                    const tbody = document.querySelector("#customSubformTableBANK tbody");
+                    tbody.innerHTML = ""; // Clear default row
+                    
+                    d.Bank_Account_Details.forEach(bank => {
+                        addBankRow(); // Create a new UI row
+                        
+                        // Target the newly inserted row
+                        const rows = tbody.querySelectorAll(".subform-row");
+                        const newRow = rows[rows.length - 1];
+                        
+                        if(newRow.querySelector(".bank-name")) newRow.querySelector(".bank-name").value = bank.Bank_Name || "";
+                        if(newRow.querySelector(".bank-type")) newRow.querySelector(".bank-type").value = bank.Bank_Type || "";
+                        if(newRow.querySelector(".bank-balance")) newRow.querySelector(".bank-balance").value = bank.Balance || "";
+                    });
+                }
+            }
+        });
+    }
+
+    // STEP 7: Assets / Vehicle Details
+    if (vehicleRecordId) {
+        ZOHO.CREATOR.API.getRecordById({
+            appName: APP_NAME, reportName: "All_Assets", id: vehicleRecordId
+        }).then(function(res) {
+            if (res.code === 3000) {
+                const d = res.data;
+                const step = formSteps[6]; // Step 7 container
+                
+                const vehicleSelect = step.querySelector("#Do_you_own_a_vehicle");
+                if (vehicleSelect) {
+                    vehicleSelect.value = d.Do_you_own_a_vehicle || "No";
+                    vehicleSelect.dispatchEvent(new Event('change')); // Triggers toggleDependentSubformAsset()
+                }
+
+                // If they have vehicles, clear the default empty row and render the saved ones
+                if (d.Do_you_own_a_vehicle === "Yes" && d.Vehicle_details && d.Vehicle_details.length > 0) {
+                    const tbody = document.querySelector("#customSubformTablevehicle tbody");
+                    tbody.innerHTML = ""; // Clear default row
+                    
+                    d.Vehicle_details.forEach(veh => {
+                        addVehicleRow(); // Create a new UI row
+                        
+                        // Target the newly inserted row
+                        const rows = tbody.querySelectorAll(".subform-row");
+                        const newRow = rows[rows.length - 1];
+                        
+                        if(newRow.querySelector(".vehicle-make")) newRow.querySelector(".vehicle-make").value = veh.Make || "";
+                        if(newRow.querySelector(".vehicle-model")) newRow.querySelector(".vehicle-model").value = veh.Model || "";
+                        if(newRow.querySelector(".vehicle-value")) newRow.querySelector(".vehicle-value").value = veh.Value || "";
+                    });
+                }
+            }
+        });
+    }
+
+    
 }
 
 // ======================================
